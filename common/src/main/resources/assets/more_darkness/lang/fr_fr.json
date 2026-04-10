@@ -1,0 +1,40 @@
+{
+    "more_darkness.config.title": "Paramètres More Darkness",
+
+    "more_darkness.config.category.darkness": "Obscurité",
+    "more_darkness.config.category.fog": "Brouillard de profondeur",
+    "more_darkness.config.category.compatibility": "Compatibilité",
+
+    "more_darkness.config.option.enable_mod": "Activer le mod",
+    "more_darkness.config.option.enable_mod.desc": "Active ou désactive tous les effets de More Darkness.",
+
+    "more_darkness.config.option.dark_overworld": "Overworld sombre",
+    "more_darkness.config.option.dark_overworld.desc": "Active l'obscurité renforcée dans l'Overworld.",
+
+    "more_darkness.config.option.dark_nether": "Nether sombre",
+    "more_darkness.config.option.dark_nether.desc": "Active l'obscurité renforcée dans le Nether.",
+
+    "more_darkness.config.option.dark_end": "End sombre",
+    "more_darkness.config.option.dark_end.desc": "Active l'obscurité renforcée dans l'End.",
+
+    "more_darkness.config.option.moon_phase_effect": "Effet des phases lunaires",
+    "more_darkness.config.option.moon_phase_effect.desc": "La luminosité nocturne varie avec la phase de la lune. Pleine lune = plus lumineux, nouvelle lune = plus sombre.",
+
+    "more_darkness.config.option.minimum_moon_brightness": "Luminosité nocturne minimale",
+    "more_darkness.config.option.minimum_moon_brightness.desc": "Luminosité minimale en extérieur la nuit (étoiles, lueur atmosphérique). Même en nouvelle lune, il ne fait pas noir complet.",
+
+    "more_darkness.config.option.cave_darkness": "Lumière ambiante des grottes",
+    "more_darkness.config.option.cave_darkness.desc": "Lumière ambiante dans les grottes sans source de lumière. 0 = noir complet (réaliste), des valeurs plus élevées ajoutent une faible visibilité.",
+
+    "more_darkness.config.option.enable_depth_fog": "Activer le brouillard de profondeur",
+    "more_darkness.config.option.enable_depth_fog.desc": "Ajoute un brouillard qui s'épaissit à mesure que vous descendez sous terre.",
+
+    "more_darkness.config.option.depth_fog_start_y": "Décalage Y de début du brouillard",
+    "more_darkness.config.option.depth_fog_start_y.desc": "Décalage Y au-dessus du niveau de la mer où le brouillard de profondeur commence. Des valeurs plus basses font commencer le brouillard plus en profondeur.",
+
+    "more_darkness.config.option.depth_fog_min_distance": "Distance minimale du brouillard",
+    "more_darkness.config.option.depth_fog_min_distance.desc": "Distance minimale du brouillard au point le plus profond, en fraction de la distance de rendu. Plus bas = brouillard plus épais.",
+
+    "more_darkness.config.option.disable_with_shaders": "Désactiver avec les shaders",
+    "more_darkness.config.option.disable_with_shaders.desc": "Désactive automatiquement ce mod quand un pack de shaders Iris/Optifine est actif, car les shaders gèrent leur propre éclairage."
+}
