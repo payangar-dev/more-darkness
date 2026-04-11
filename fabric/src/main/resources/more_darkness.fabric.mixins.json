@@ -4,9 +4,7 @@
     "package": "com.payangar.moredarkness.mixin",
     "refmap": "${mod_id}.refmap.json",
     "compatibilityLevel": "JAVA_21",
-    "client": [
-        "MixinFogRenderer"
-    ],
+    "client": [],
     "injectors": {
         "defaultRequire": 1
     }

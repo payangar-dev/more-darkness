@@ -7,7 +7,7 @@ import dev.isxander.yacl3.api.OptionDescription;
 import dev.isxander.yacl3.api.YetAnotherConfigLib;
 import dev.isxander.yacl3.api.controller.BooleanControllerBuilder;
 import dev.isxander.yacl3.api.controller.FloatSliderControllerBuilder;
-import dev.isxander.yacl3.api.controller.IntegerSliderControllerBuilder;
+
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
@@ -23,7 +23,6 @@ public final class ConfigScreenBuilder {
                 .title(Component.translatable("more_darkness.config.title"))
                 .save(MoreDarknessConfig::save)
                 .category(darknessCategory(defaults, config))
-                .category(fogCategory(defaults, config))
                 .category(compatCategory(defaults, config))
                 .build()
                 .generateScreen(parent);
@@ -39,20 +38,6 @@ public final class ConfigScreenBuilder {
                 .option(boolOption("moon_phase_effect", defaults.moonPhaseEffect, () -> config.moonPhaseEffect, v -> config.moonPhaseEffect = v))
                 .option(floatOption("minimum_moon_brightness", 0.0f, 0.5f, 0.01f, defaults.minimumMoonBrightness, () -> config.minimumMoonBrightness, v -> config.minimumMoonBrightness = v))
                 .option(floatOption("cave_darkness", 0.0f, 1.0f, 0.01f, defaults.caveDarkness, () -> config.caveDarkness, v -> config.caveDarkness = v))
-                .build();
-    }
-
-    private static ConfigCategory fogCategory(MoreDarknessConfig defaults, MoreDarknessConfig config) {
-        return ConfigCategory.createBuilder()
-                .name(Component.translatable("more_darkness.config.category.fog"))
-                .option(boolOption("enable_depth_fog", defaults.enableDepthFog, () -> config.enableDepthFog, v -> config.enableDepthFog = v))
-                .option(Option.<Integer>createBuilder()
-                        .name(Component.translatable("more_darkness.config.option.depth_fog_start_y"))
-                        .description(OptionDescription.of(Component.translatable("more_darkness.config.option.depth_fog_start_y.desc")))
-                        .binding(defaults.depthFogStartY, () -> config.depthFogStartY, v -> config.depthFogStartY = v)
-                        .controller(opt -> IntegerSliderControllerBuilder.create(opt).range(-64, 128).step(1))
-                        .build())
-                .option(floatOption("depth_fog_min_distance", 0.1f, 1.0f, 0.05f, defaults.depthFogMinDistance, () -> config.depthFogMinDistance, v -> config.depthFogMinDistance = v))
                 .build();
     }
 

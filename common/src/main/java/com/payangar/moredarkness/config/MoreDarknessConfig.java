@@ -27,11 +27,6 @@ public class MoreDarknessConfig {
     public float minimumMoonBrightness = 0.05f;
     public float caveDarkness = 0.0f;
 
-    // --- Depth Fog ---
-    public boolean enableDepthFog = true;
-    public int depthFogStartY = 32;
-    public float depthFogMinDistance = 0.3f;
-
     // --- Compatibility ---
     public boolean disableWithShaders = true;
 

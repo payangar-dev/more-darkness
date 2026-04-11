@@ -2,7 +2,6 @@
     "more_darkness.config.title": "More Darkness Settings",
 
     "more_darkness.config.category.darkness": "Darkness",
-    "more_darkness.config.category.fog": "Depth Fog",
     "more_darkness.config.category.compatibility": "Compatibility",
 
     "more_darkness.config.option.enable_mod": "Enable Mod",
@@ -25,15 +24,6 @@
 
     "more_darkness.config.option.cave_darkness": "Cave Ambient Light",
     "more_darkness.config.option.cave_darkness.desc": "Ambient light level in caves with no light source. 0 = pitch black (realistic), higher values add faint visibility.",
-
-    "more_darkness.config.option.enable_depth_fog": "Enable Depth Fog",
-    "more_darkness.config.option.enable_depth_fog.desc": "Adds fog that gets thicker as you go deeper underground.",
-
-    "more_darkness.config.option.depth_fog_start_y": "Fog Start Y Offset",
-    "more_darkness.config.option.depth_fog_start_y.desc": "Y offset above sea level where depth fog starts appearing. Lower values make fog start deeper.",
-
-    "more_darkness.config.option.depth_fog_min_distance": "Fog Minimum Distance",
-    "more_darkness.config.option.depth_fog_min_distance.desc": "How close the fog gets at the deepest point, as a fraction of render distance. Lower = thicker fog.",
 
     "more_darkness.config.option.disable_with_shaders": "Disable With Shaders",
     "more_darkness.config.option.disable_with_shaders.desc": "Automatically disable this mod when an Iris/Optifine shader pack is active, as shader packs handle their own lighting."
