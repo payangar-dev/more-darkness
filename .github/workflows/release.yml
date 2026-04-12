@@ -69,6 +69,7 @@ jobs:
           version-type: release
           loaders: fabric
           game-versions: 1.21.1
+          changelog-file: changelog.txt
           dependencies: |
             fabric-api(required)
             yacl(required)
@@ -87,5 +88,6 @@ jobs:
           version-type: release
           loaders: neoforge
           game-versions: 1.21.1
+          changelog-file: changelog.txt
           dependencies: |
             yacl(required)
