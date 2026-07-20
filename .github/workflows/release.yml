@@ -4,6 +4,19 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g. 1.0.0). Used as -Pversion= and as the published version.'
+        required: true
+      publish_modrinth:
+        description: 'Publish to Modrinth'
+        type: boolean
+        default: true
+      publish_curseforge:
+        description: 'Publish to CurseForge'
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -11,21 +24,27 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      - name: Resolve version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 21
-
-      - name: Extract version from tag
-        id: version
-        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          java-version: 25
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -34,60 +53,124 @@ jobs:
         run: ./gradlew build -Pversion=${{ steps.version.outputs.version }}
 
       - name: Generate changelog
-        id: changelog
         run: |
-          # Get previous tag
-          PREV_TAG=$(git tag --sort=-v:refname | sed -n '2p')
+          CURRENT_TAG="v${{ steps.version.outputs.version }}"
+          PREV_TAG=$(git tag --sort=-v:refname | grep -v "^${CURRENT_TAG}$" | head -n 1)
           if [ -z "$PREV_TAG" ]; then
-            # First release — use all commits
-            COMMITS=$(git log --pretty=format:"- %s" HEAD)
+            git log --pretty=format:"- %s" HEAD > changelog.txt
           else
-            COMMITS=$(git log --pretty=format:"- %s" "${PREV_TAG}..HEAD")
+            git log --pretty=format:"- %s" "${PREV_TAG}..HEAD" > changelog.txt
           fi
-          # Write to file (multi-line safe)
-          echo "$COMMITS" > changelog.txt
+
+      - name: Stage artifacts
+        run: |
+          mkdir -p artifacts
+          cp fabric/build/libs/more_darkness-fabric-*[0-9].jar artifacts/
+          cp neoforge/build/libs/more_darkness-neoforge-*[0-9].jar artifacts/
+          cp changelog.txt artifacts/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: artifacts/
 
       - name: Create GitHub Release
+        if: github.event_name == 'push'
         uses: softprops/action-gh-release@v2
         with:
-          name: v${{ steps.version.outputs.version }}
+          name: More Darkness v${{ steps.version.outputs.version }}
           body_path: changelog.txt
           files: |
-            fabric/build/libs/more_darkness-fabric-*[0-9].jar
-            neoforge/build/libs/more_darkness-neoforge-*[0-9].jar
+            artifacts/more_darkness-fabric-*[0-9].jar
+            artifacts/more_darkness-neoforge-*[0-9].jar
 
-      - name: Publish Fabric to Modrinth & CurseForge
+  publish-modrinth:
+    needs: build
+    if: ${{ github.event_name == 'push' || inputs.publish_modrinth }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-artifacts
+          path: artifacts/
+
+      - name: Publish Fabric to Modrinth
         uses: Kir-Antipov/mc-publish@v3.3
         with:
           modrinth-id: ${{ vars.MODRINTH_ID }}
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
-          curseforge-id: ${{ vars.CURSEFORGE_ID }}
-          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
-          files: fabric/build/libs/more_darkness-fabric-*[0-9].jar
-          name: More Darkness ${{ steps.version.outputs.version }} (Fabric)
-          version: ${{ steps.version.outputs.version }}+fabric
+          files: artifacts/more_darkness-fabric-*[0-9].jar
+          name: More Darkness ${{ needs.build.outputs.version }} (Fabric)
+          version: ${{ needs.build.outputs.version }}+fabric
           version-type: release
           loaders: fabric
-          game-versions: 1.21.1
-          changelog-file: changelog.txt
+          game-versions: 26.2
+          java: 25
+          changelog-file: artifacts/changelog.txt
           dependencies: |
             fabric-api(required)
             yacl(required)
             modmenu(optional)
 
-      - name: Publish NeoForge to Modrinth & CurseForge
+      - name: Publish NeoForge to Modrinth
         uses: Kir-Antipov/mc-publish@v3.3
         with:
           modrinth-id: ${{ vars.MODRINTH_ID }}
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
-          curseforge-id: ${{ vars.CURSEFORGE_ID }}
-          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
-          files: neoforge/build/libs/more_darkness-neoforge-*[0-9].jar
-          name: More Darkness ${{ steps.version.outputs.version }} (NeoForge)
-          version: ${{ steps.version.outputs.version }}+neoforge
+          files: artifacts/more_darkness-neoforge-*[0-9].jar
+          name: More Darkness ${{ needs.build.outputs.version }} (NeoForge)
+          version: ${{ needs.build.outputs.version }}+neoforge
           version-type: release
           loaders: neoforge
-          game-versions: 1.21.1
-          changelog-file: changelog.txt
+          game-versions: 26.2
+          java: 25
+          changelog-file: artifacts/changelog.txt
+          dependencies: |
+            yacl(required)
+
+  publish-curseforge:
+    needs: build
+    if: ${{ github.event_name == 'push' || inputs.publish_curseforge }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-artifacts
+          path: artifacts/
+
+      - name: Publish Fabric to CurseForge
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          curseforge-id: ${{ vars.CURSEFORGE_ID }}
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+          files: artifacts/more_darkness-fabric-*[0-9].jar
+          name: More Darkness ${{ needs.build.outputs.version }} (Fabric)
+          version: ${{ needs.build.outputs.version }}+fabric
+          version-type: release
+          loaders: fabric
+          game-versions: 26.2
+          java: 25
+          changelog-file: artifacts/changelog.txt
+          dependencies: |
+            fabric-api(required)
+            yacl(required)
+            modmenu(optional)
+
+      - name: Publish NeoForge to CurseForge
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          curseforge-id: ${{ vars.CURSEFORGE_ID }}
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+          files: artifacts/more_darkness-neoforge-*[0-9].jar
+          name: More Darkness ${{ needs.build.outputs.version }} (NeoForge)
+          version: ${{ needs.build.outputs.version }}+neoforge
+          version-type: release
+          loaders: neoforge
+          game-versions: 26.2
+          java: 25
+          changelog-file: artifacts/changelog.txt
           dependencies: |
             yacl(required)
