@@ -27,7 +27,7 @@
         "fabric-api": "*",
         "minecraft": "${minecraft_version}",
         "java": ">=${java_version}",
-        "yet_another_config_lib_v3": ">=3.9.6"
+        "yet_another_config_lib_v3": ">=3.9.5"
     },
     "suggests": {
         "modmenu": "*"
