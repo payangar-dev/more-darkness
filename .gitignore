@@ -4,6 +4,7 @@ build/
 buildSrc/build/
 out/
 runs/
+run/
 
 # IDE
 .idea/
