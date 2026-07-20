@@ -2,11 +2,9 @@
     "required": true,
     "minVersion": "0.8",
     "package": "com.payangar.moredarkness.mixin",
-    "refmap": "${mod_id}.refmap.json",
-    "compatibilityLevel": "JAVA_21",
+    "compatibilityLevel": "JAVA_25",
     "client": [
-        "MixinLightTexture",
-        "MixinGameRenderer"
+        "MixinLightmapRenderStateExtractor"
     ],
     "injectors": {
         "defaultRequire": 1
