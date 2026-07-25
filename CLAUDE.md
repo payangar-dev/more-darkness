@@ -31,6 +31,8 @@ ConfigScreenBuilder is duplicated in each loader module (same code, different YA
 - `assets/minecraft/shaders/core/lightmap.fsh` — Replacement core shader, see below.
 - `MoreDarknessConfig` — Plain POJO, GSON serialized to `config/more_darkness.json`.
 
+The mod stands down entirely while the player has night vision or conduit vision, as the 1.21.1 branch did. This is required here, not cosmetic: the 1.21.x shader applies night vision by scaling the lightmap up towards 1, which cannot lift a cell driven to zero, so the effect would be useless and the scale would divide by zero. 26.1+ takes a max against the night vision colour instead and needs no such guard.
+
 ## Lightmap history (why the code looks like this)
 
 - ≤ 1.21.1: CPU 16x16 NativeImage manipulated pixel by pixel (old approach, branch 1.21.1).

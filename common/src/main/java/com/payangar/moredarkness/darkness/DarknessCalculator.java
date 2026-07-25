@@ -4,9 +4,11 @@ import com.payangar.moredarkness.config.MoreDarknessConfig;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.attribute.EnvironmentAttributes;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.MoonPhase;
 
@@ -70,8 +72,10 @@ public final class DarknessCalculator {
 
     /** The level being rendered, or null when the mod leaves this frame alone. */
     private static ClientLevel darkenedLevel() {
-        ClientLevel level = Minecraft.getInstance().level;
-        if (level == null) {
+        Minecraft minecraft = Minecraft.getInstance();
+        ClientLevel level = minecraft.level;
+        LocalPlayer player = minecraft.player;
+        if (level == null || player == null) {
             return null;
         }
 
@@ -79,7 +83,20 @@ public final class DarknessCalculator {
         if (!config.enableMod || !isDarkDimension(level, config)) {
             return null;
         }
+
+        // Stand down for enhanced vision, as the 1.21.1 branch did. The 1.21.x
+        // shader brightens by scaling the lightmap up towards 1, which cannot
+        // lift a cell we drove to zero: night vision would be useless and the
+        // scale would divide by zero. 26.1+ takes a max instead and is immune.
+        if (hasEnhancedVision(player)) {
+            return null;
+        }
         return level;
+    }
+
+    private static boolean hasEnhancedVision(LocalPlayer player) {
+        return player.hasEffect(MobEffects.NIGHT_VISION)
+                || (player.hasEffect(MobEffects.CONDUIT_POWER) && player.getWaterVision() > 0.0f);
     }
 
     /**
