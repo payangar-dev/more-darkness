@@ -44,12 +44,8 @@ public final class DarknessCalculator {
 
     /**
      * AmbientLightFactor uniform: how far the lightmap is lifted towards the
-     * dimension's ambient colour, the floor that keeps unlit caves visible.
-     * Scaled by caveDarkness, so 0 removes the lift entirely.
-     *
-     * <p>Only the Nether and the End have a non-zero vanilla lift; the Overworld
-     * is already at 0. Caves cannot go fully black either way, because the 1.21.x
-     * shader mixes in 4% grey twice after this point.
+     * dimension's ambient colour. Scaled by caveDarkness, so 0 removes the lift
+     * entirely. Only the Nether and the End have a non-zero vanilla lift.
      */
     public static float ambientLightFactor(float vanillaAmbientLight) {
         ClientLevel level = darkenedLevel();
@@ -57,6 +53,19 @@ public final class DarknessCalculator {
             return vanillaAmbientLight;
         }
         return vanillaAmbientLight * MoreDarknessConfig.getInstance().caveDarkness;
+    }
+
+    /**
+     * AmbientFloorFactor uniform, added by this mod's copy of core/lightmap.fsh.
+     * Scales the two hardcoded 4% grey mixes that otherwise hold unlit cells at
+     * roughly 0.06, which is what stops Overworld caves from going black on
+     * 1.21.x. 1.0 is vanilla, 0 removes the floor.
+     */
+    public static float ambientFloorFactor() {
+        if (darkenedLevel() == null) {
+            return 1.0f;
+        }
+        return MoreDarknessConfig.getInstance().caveDarkness;
     }
 
     /** The level being rendered, or null when the mod leaves this frame alone. */
