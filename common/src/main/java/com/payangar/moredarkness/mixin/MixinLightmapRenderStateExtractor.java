@@ -22,6 +22,6 @@ public class MixinLightmapRenderStateExtractor {
     // (needsUpdate == false, level/player null) skip this injection.
     @Inject(method = "extract", at = @At("TAIL"))
     private void moreDarkness_afterExtract(LightmapRenderState renderState, float partialTicks, CallbackInfo ci) {
-        DarknessCalculator.apply(renderState, renderer.mainCamera(), partialTicks);
+        DarknessCalculator.apply(renderState, renderer.getMainCamera(), partialTicks);
     }
 }

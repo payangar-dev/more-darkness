@@ -26,7 +26,7 @@ public final class DarknessCalculator {
 
     /**
      * Adjusts the extracted lightmap render state for the current frame.
-     * The brightness (gamma) bypass is left untouched: the 26.2 shader's
+     * The brightness (gamma) bypass is left untouched: the 26.1 shader's
      * notGamma(0) == 0, so fully dark cells stay black at any gamma setting.
      */
     public static void apply(LightmapRenderState renderState, Camera camera, float partialTicks) {

@@ -106,7 +106,7 @@ jobs:
           version: ${{ needs.build.outputs.version }}+fabric
           version-type: release
           loaders: fabric
-          game-versions: 26.2
+          game-versions: 26.1.2
           java: 25
           changelog-file: artifacts/changelog.txt
           dependencies: |
@@ -124,7 +124,7 @@ jobs:
           version: ${{ needs.build.outputs.version }}+neoforge
           version-type: release
           loaders: neoforge
-          game-versions: 26.2
+          game-versions: 26.1.2
           java: 25
           changelog-file: artifacts/changelog.txt
           dependencies: |
@@ -151,7 +151,7 @@ jobs:
           version: ${{ needs.build.outputs.version }}+fabric
           version-type: release
           loaders: fabric
-          game-versions: 26.2
+          game-versions: 26.1.2
           java: 25
           changelog-file: artifacts/changelog.txt
           dependencies: |
@@ -169,7 +169,7 @@ jobs:
           version: ${{ needs.build.outputs.version }}+neoforge
           version-type: release
           loaders: neoforge
-          game-versions: 26.2
+          game-versions: 26.1.2
           java: 25
           changelog-file: artifacts/changelog.txt
           dependencies: |
