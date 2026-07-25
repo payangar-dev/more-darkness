@@ -44,7 +44,11 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 25
+          # 21 is the game's toolchain, 25 runs the Gradle daemon (listed last
+          # so it wins JAVA_HOME)
+          java-version: |
+            21
+            25
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -106,8 +110,8 @@ jobs:
           version: ${{ needs.build.outputs.version }}+fabric
           version-type: release
           loaders: fabric
-          game-versions: 26.2
-          java: 25
+          game-versions: 1.21.11
+          java: 21
           changelog-file: artifacts/changelog.txt
           dependencies: |
             fabric-api(required)
@@ -124,8 +128,8 @@ jobs:
           version: ${{ needs.build.outputs.version }}+neoforge
           version-type: release
           loaders: neoforge
-          game-versions: 26.2
-          java: 25
+          game-versions: 1.21.11
+          java: 21
           changelog-file: artifacts/changelog.txt
           dependencies: |
             yacl(required)
@@ -151,8 +155,8 @@ jobs:
           version: ${{ needs.build.outputs.version }}+fabric
           version-type: release
           loaders: fabric
-          game-versions: 26.2
-          java: 25
+          game-versions: 1.21.11
+          java: 21
           changelog-file: artifacts/changelog.txt
           dependencies: |
             fabric-api(required)
@@ -169,8 +173,8 @@ jobs:
           version: ${{ needs.build.outputs.version }}+neoforge
           version-type: release
           loaders: neoforge
-          game-versions: 26.2
-          java: 25
+          game-versions: 1.21.11
+          java: 21
           changelog-file: artifacts/changelog.txt
           dependencies: |
             yacl(required)

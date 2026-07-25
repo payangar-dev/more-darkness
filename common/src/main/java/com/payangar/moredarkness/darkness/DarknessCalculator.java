@@ -4,18 +4,16 @@ import com.payangar.moredarkness.config.MoreDarknessConfig;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.state.LightmapRenderState;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.MoonPhase;
-import org.joml.Vector3f;
 
 /**
  * Darkens the lightmap based on moon phase, dimension and config.
  * Since 1.21.2 the lightmap is computed on the GPU (core/lightmap.fsh), so the
- * mod shapes its CPU-side inputs (LightmapRenderState) instead of rewriting pixels.
+ * mod shapes the uniforms LightTexture uploads instead of rewriting pixels.
  */
 public final class DarknessCalculator {
 
@@ -25,32 +23,54 @@ public final class DarknessCalculator {
     private DarknessCalculator() {}
 
     /**
-     * Adjusts the extracted lightmap render state for the current frame.
-     * The brightness (gamma) bypass is left untouched: the 26.2 shader's
+     * SkyFactor uniform: how much of the sky light column reaches the world.
+     * Scaled by the moon-phase curve at night, zeroed where there is no sky light.
+     * The brightness (gamma) uniform is left untouched: the shader's
      * notGamma(0) == 0, so fully dark cells stay black at any gamma setting.
      */
-    public static void apply(LightmapRenderState renderState, Camera camera, float partialTicks) {
+    public static float skyFactor(float vanillaSkyFactor, float partialTicks) {
+        ClientLevel level = darkenedLevel();
+        if (level == null) {
+            return vanillaSkyFactor;
+        }
+        if (!level.dimensionType().hasSkyLight()) {
+            return 0.0f;
+        }
+
+        Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
+        MoreDarknessConfig config = MoreDarknessConfig.getInstance();
+        return vanillaSkyFactor * nightFactor(vanillaSkyFactor, camera, config, partialTicks);
+    }
+
+    /**
+     * AmbientLightFactor uniform: how far the lightmap is lifted towards the
+     * dimension's ambient colour, the floor that keeps unlit caves visible.
+     * Scaled by caveDarkness, so 0 removes the lift entirely.
+     *
+     * <p>Only the Nether and the End have a non-zero vanilla lift; the Overworld
+     * is already at 0. Caves cannot go fully black either way, because the 1.21.x
+     * shader mixes in 4% grey twice after this point.
+     */
+    public static float ambientLightFactor(float vanillaAmbientLight) {
+        ClientLevel level = darkenedLevel();
+        if (level == null) {
+            return vanillaAmbientLight;
+        }
+        return vanillaAmbientLight * MoreDarknessConfig.getInstance().caveDarkness;
+    }
+
+    /** The level being rendered, or null when the mod leaves this frame alone. */
+    private static ClientLevel darkenedLevel() {
         ClientLevel level = Minecraft.getInstance().level;
         if (level == null) {
-            return;
+            return null;
         }
 
         MoreDarknessConfig config = MoreDarknessConfig.getInstance();
         if (!config.enableMod || !isDarkDimension(level, config)) {
-            return;
+            return null;
         }
-
-        // Moon-phase night darkening: scale the sky light contribution
-        if (level.dimensionType().hasSkyLight()) {
-            renderState.skyFactor *= nightFactor(renderState.skyFactor, camera, config, partialTicks);
-        } else {
-            renderState.skyFactor = 0.0f;
-        }
-
-        // Replace vanilla's ambient light floor with the configured cave ambient
-        // (0 by default -> pitch black caves, and pitch black nether/end ambient)
-        float caveAmbient = config.caveDarkness * 0.05f;
-        renderState.ambientColor = new Vector3f(caveAmbient, caveAmbient, caveAmbient);
+        return level;
     }
 
     /**

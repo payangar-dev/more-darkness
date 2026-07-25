@@ -9,7 +9,10 @@ neoForge {
     if (at.exists()) {
         accessTransformers.from(at.absolutePath)
     }
-    // No Parchment for MC 26.x yet — plain Mojang mappings
+    parchment {
+        minecraftVersion = parchment_minecraft
+        mappingsVersion = parchment_version
+    }
 }
 
 dependencies {

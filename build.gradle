@@ -1,4 +1,6 @@
 plugins {
-    id 'net.fabricmc.fabric-loom' version '1.17-SNAPSHOT' apply false
+    // Classic plugin id: the net.fabricmc.fabric-loom id forces Loom's
+    // unobfuscated (26.x) mode, which rejects mappings
+    id 'fabric-loom' version '1.17.17' apply false
     id 'net.neoforged.moddev' version '2.0.142' apply false
 }

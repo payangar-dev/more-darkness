@@ -2,9 +2,9 @@
     "required": true,
     "minVersion": "0.8",
     "package": "com.payangar.moredarkness.mixin",
-    "compatibilityLevel": "JAVA_25",
+    "compatibilityLevel": "JAVA_21",
     "client": [
-        "MixinLightmapRenderStateExtractor"
+        "MixinLightTexture"
     ],
     "injectors": {
         "defaultRequire": 1
