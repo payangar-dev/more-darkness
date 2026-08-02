@@ -1,0 +1,41 @@
+{
+    "targets": {
+        "m0": { "width": 480, "height": 270 },
+        "m1": { "width": 120, "height": 68 },
+        "m2": { "width": 30, "height": 17 },
+        "m3": { "width": 8, "height": 4 },
+        "measure": { "width": 1, "height": 1, "persistent": true }
+    },
+    "passes": [
+        {
+            "vertex_shader": "minecraft:core/screenquad",
+            "fragment_shader": "more_darkness:post/dual_down",
+            "inputs": [ { "sampler_name": "In", "target": "minecraft:main", "bilinear": true } ],
+            "output": "m0"
+        },
+        {
+            "vertex_shader": "minecraft:core/screenquad",
+            "fragment_shader": "more_darkness:post/dual_down",
+            "inputs": [ { "sampler_name": "In", "target": "m0", "bilinear": true } ],
+            "output": "m1"
+        },
+        {
+            "vertex_shader": "minecraft:core/screenquad",
+            "fragment_shader": "more_darkness:post/dual_down",
+            "inputs": [ { "sampler_name": "In", "target": "m1", "bilinear": true } ],
+            "output": "m2"
+        },
+        {
+            "vertex_shader": "minecraft:core/screenquad",
+            "fragment_shader": "more_darkness:post/dual_down",
+            "inputs": [ { "sampler_name": "In", "target": "m2", "bilinear": true } ],
+            "output": "m3"
+        },
+        {
+            "vertex_shader": "minecraft:core/screenquad",
+            "fragment_shader": "more_darkness:post/dual_down",
+            "inputs": [ { "sampler_name": "In", "target": "m3", "bilinear": true } ],
+            "output": "measure"
+        }
+    ]
+}

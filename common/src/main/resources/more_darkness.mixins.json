@@ -4,7 +4,14 @@
     "package": "com.payangar.moredarkness.mixin",
     "compatibilityLevel": "JAVA_25",
     "client": [
-        "MixinLightmapRenderStateExtractor"
+        "LevelRendererInvoker",
+        "MixinFluidRendererSmoothLight",
+        "MixinGameRendererScotopic",
+        "MixinLevelRendererDarkSight",
+        "MixinLightmapRenderStateExtractor",
+        "MixinWaterFogEnvironment",
+        "PostChainAccessor",
+        "PostPassAccessor"
     ],
     "injectors": {
         "defaultRequire": 1

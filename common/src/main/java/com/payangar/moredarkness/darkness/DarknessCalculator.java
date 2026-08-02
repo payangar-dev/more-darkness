@@ -47,10 +47,23 @@ public final class DarknessCalculator {
             renderState.skyFactor = 0.0f;
         }
 
-        // Replace vanilla's ambient light floor with the configured cave ambient
-        // (0 by default -> pitch black caves, and pitch black nether/end ambient)
+        // FIXME: fake - perception spike step 1, hardcoded knobs below.
+        // Smoother torch falloff: flat boost of the block light contribution
+        // (high levels already clamp at 1, so this mostly lifts the mid range).
+        renderState.blockFactor *= 1.5f;
+
+        // Dark adaptation amplifies whatever light exists (rods gain), it
+        // cannot create light: pitch black cells stay pitch black, dim ones
+        // become readable once the eye is adapted.
+        float adaptationGain = 1.0f + 0.9f * EyeState.rodEngagement();
+        renderState.blockFactor *= adaptationGain;
+        renderState.skyFactor *= adaptationGain;
+
+        // Ambient floor: configured cave ambient, raised by dark adaptation
+        // (0 by default -> pitch black caves until the eye adapts)
         float caveAmbient = config.caveDarkness * 0.05f;
-        renderState.ambientColor = new Vector3f(caveAmbient, caveAmbient, caveAmbient);
+        float ambient = Math.max(caveAmbient, EyeState.darkSightFloor());
+        renderState.ambientColor = new Vector3f(ambient, ambient, ambient);
     }
 
     /**
