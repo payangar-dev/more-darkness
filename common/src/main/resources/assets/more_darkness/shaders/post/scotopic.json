@@ -1,0 +1,55 @@
+{
+    "targets": [
+        "swap",
+        { "name": "m0", "width": 480, "height": 270 },
+        { "name": "m1", "width": 120, "height": 68 },
+        { "name": "m2", "width": 30, "height": 17 },
+        { "name": "m3", "width": 8, "height": 4 },
+        { "name": "measure", "width": 1, "height": 1 }
+    ],
+    "passes": [
+        {
+            "name": "more_darkness_scotopic",
+            "intarget": "minecraft:main",
+            "outtarget": "swap",
+            "uniforms": [
+                { "name": "Scotopic", "values": [ 0.0, 0.0, 0.0, 0.0 ] }
+            ]
+        },
+        {
+            "name": "more_darkness_dual_down",
+            "intarget": "swap",
+            "outtarget": "m0",
+            "use_linear_filter": true
+        },
+        {
+            "name": "more_darkness_dual_down",
+            "intarget": "m0",
+            "outtarget": "m1",
+            "use_linear_filter": true
+        },
+        {
+            "name": "more_darkness_dual_down",
+            "intarget": "m1",
+            "outtarget": "m2",
+            "use_linear_filter": true
+        },
+        {
+            "name": "more_darkness_dual_down",
+            "intarget": "m2",
+            "outtarget": "m3",
+            "use_linear_filter": true
+        },
+        {
+            "name": "more_darkness_dual_down",
+            "intarget": "m3",
+            "outtarget": "measure",
+            "use_linear_filter": true
+        },
+        {
+            "name": "blit",
+            "intarget": "swap",
+            "outtarget": "minecraft:main"
+        }
+    ]
+}

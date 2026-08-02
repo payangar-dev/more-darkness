@@ -1,0 +1,76 @@
+{
+    "targets": [
+        "swap",
+        { "name": "p0", "width": 640, "height": 360 },
+        { "name": "d1", "width": 320, "height": 180 },
+        { "name": "d2", "width": 160, "height": 90 },
+        { "name": "d3", "width": 80, "height": 45 },
+        { "name": "u2", "width": 160, "height": 90 },
+        { "name": "u1", "width": 320, "height": 180 },
+        { "name": "u0", "width": 640, "height": 360 }
+    ],
+    "passes": [
+        {
+            "name": "more_darkness_glare_prefilter",
+            "intarget": "minecraft:main",
+            "outtarget": "p0",
+            "use_linear_filter": true,
+            "uniforms": [
+                { "name": "Glare", "values": [ 0.0, 0.0, 0.0, 0.0 ] }
+            ]
+        },
+        {
+            "name": "more_darkness_dual_down",
+            "intarget": "p0",
+            "outtarget": "d1",
+            "use_linear_filter": true
+        },
+        {
+            "name": "more_darkness_dual_down",
+            "intarget": "d1",
+            "outtarget": "d2",
+            "use_linear_filter": true
+        },
+        {
+            "name": "more_darkness_dual_down",
+            "intarget": "d2",
+            "outtarget": "d3",
+            "use_linear_filter": true
+        },
+        {
+            "name": "more_darkness_dual_up",
+            "intarget": "d3",
+            "outtarget": "u2",
+            "use_linear_filter": true
+        },
+        {
+            "name": "more_darkness_dual_up",
+            "intarget": "u2",
+            "outtarget": "u1",
+            "use_linear_filter": true
+        },
+        {
+            "name": "more_darkness_dual_up",
+            "intarget": "u1",
+            "outtarget": "u0",
+            "use_linear_filter": true
+        },
+        {
+            "name": "more_darkness_glare_composite",
+            "intarget": "minecraft:main",
+            "outtarget": "swap",
+            "use_linear_filter": true,
+            "auxtargets": [
+                { "name": "BloomSampler", "id": "u0" }
+            ],
+            "uniforms": [
+                { "name": "Glare", "values": [ 0.0, 0.0, 0.0, 0.0 ] }
+            ]
+        },
+        {
+            "name": "blit",
+            "intarget": "swap",
+            "outtarget": "minecraft:main"
+        }
+    ]
+}

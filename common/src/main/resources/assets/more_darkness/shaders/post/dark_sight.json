@@ -1,0 +1,23 @@
+{
+    "targets": [
+        "swap"
+    ],
+    "passes": [
+        {
+            "name": "more_darkness_dark_sight",
+            "intarget": "minecraft:main",
+            "outtarget": "swap",
+            "auxtargets": [
+                { "name": "MainDepthSampler", "id": "minecraft:main:depth" }
+            ],
+            "uniforms": [
+                { "name": "DarkSight", "values": [ 8.0, 0.0, 0.05, 1024.0 ] }
+            ]
+        },
+        {
+            "name": "blit",
+            "intarget": "swap",
+            "outtarget": "minecraft:main"
+        }
+    ]
+}

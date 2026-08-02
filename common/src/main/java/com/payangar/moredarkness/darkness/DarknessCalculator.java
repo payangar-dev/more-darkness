@@ -58,6 +58,15 @@ public final class DarknessCalculator {
         float ambient = world.getSkyDarken(1.0f);
         DimensionType dim = world.dimensionType();
 
+        // FIXME: fake - perception spike port, hardcoded knobs below.
+        // Dark adaptation amplifies whatever light exists (rods gain), it
+        // cannot create light: pitch black cells stay pitch black, dim ones
+        // become readable once the eye is adapted.
+        float adaptationGain = 1.0f + 0.9f * EyeState.rodEngagement();
+        // Ambient floor: configured cave ambient, raised by dark adaptation
+        // (0 by default -> pitch black caves until the eye adapts)
+        float caveAmbient = Math.max(config.caveDarkness * 0.05f, EyeState.darkSightFloor());
+
         for (int skyIndex = 0; skyIndex < 16; ++skyIndex) {
             // Sky light curve: 1 - (1 - s/15)^4
             float skyFactor = 1f - skyIndex / 15f;
@@ -83,6 +92,11 @@ public final class DarknessCalculator {
                 skyBlue = skyBlue * (1.0f - darken) + skyBlue * 0.6f * darken;
             }
 
+            // Dark adaptation amplifies the sky contribution
+            skyRed *= adaptationGain;
+            skyGreen *= adaptationGain;
+            skyBlue *= adaptationGain;
+
             for (int blockIndex = 0; blockIndex < 16; ++blockIndex) {
                 // Block light curve
                 float blockFactor = 1f - blockIndex / 15f;
@@ -93,13 +107,20 @@ public final class DarknessCalculator {
                 float blockGreen = blockBase * ((blockBase * (1 - min) + min) * (1 - min) + min);
                 float blockBlue = blockBase * (blockBase * blockBase * (1 - min) + min);
 
+                // Smoother torch falloff: flat boost of the block light
+                // contribution (high levels already clamp at 1, so this
+                // mostly lifts the mid range), amplified by dark adaptation.
+                float blockScale = 1.5f * adaptationGain;
+                blockBase *= blockScale;
+                blockGreen *= blockScale;
+                blockBlue *= blockScale;
+
                 float red = skyRed + blockBase;
                 float green = skyGreen + blockGreen;
                 float blue = skyBlue + blockBlue;
 
-                // Cave ambient: when skyIndex == 0, add configured cave ambient light
-                if (skyIndex == 0 && config.caveDarkness > 0.0f) {
-                    float caveAmbient = config.caveDarkness * 0.05f;
+                // Cave ambient: when skyIndex == 0, add the ambient floor
+                if (skyIndex == 0 && caveAmbient > 0.0f) {
                     red += caveAmbient;
                     green += caveAmbient;
                     blue += caveAmbient;
@@ -141,8 +162,9 @@ public final class DarknessCalculator {
     }
 
     /**
-     * Darkens a lightmap pixel to match the pre-calculated target luminance.
-     * Preserves hue, only scales brightness.
+     * Rescales a lightmap pixel to match the pre-calculated target luminance.
+     * Preserves hue, only scales brightness. May brighten as well as darken
+     * (torch falloff boost, dark adaptation gain); channels clamp at white.
      */
     public static int darken(int color, int blockIndex, int skyIndex) {
         float lTarget = LUMINANCE[blockIndex][skyIndex];
@@ -150,14 +172,14 @@ public final class DarknessCalculator {
         float g = ((color >> 8) & 0xFF) / 255f;
         float b = ((color >> 16) & 0xFF) / 255f;
         float l = luminance(r, g, b);
-        float f = l > 0 ? Math.min(1, lTarget / l) : 0;
+        float f = l > 0 ? lTarget / l : 0;
 
         if (f == 1f) return color;
 
         return 0xFF000000
-                | Math.round(f * r * 255)
-                | (Math.round(f * g * 255) << 8)
-                | (Math.round(f * b * 255) << 16);
+                | Math.round(Math.min(1f, f * r) * 255)
+                | (Math.round(Math.min(1f, f * g) * 255) << 8)
+                | (Math.round(Math.min(1f, f * b) * 255) << 16);
     }
 
     /**
