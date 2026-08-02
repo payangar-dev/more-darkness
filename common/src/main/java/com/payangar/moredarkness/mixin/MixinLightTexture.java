@@ -48,6 +48,15 @@ public class MixinLightTexture {
             method = "updateLightTexture",
             at = @At(value = "INVOKE",
                     target = "Lcom/mojang/blaze3d/buffers/Std140Builder;putFloat(F)Lcom/mojang/blaze3d/buffers/Std140Builder;",
+                    ordinal = 2))
+    private Std140Builder moreDarkness_blockFactor(Std140Builder builder, float blockFactor) {
+        return builder.putFloat(DarknessCalculator.blockFactor(blockFactor));
+    }
+
+    @Redirect(
+            method = "updateLightTexture",
+            at = @At(value = "INVOKE",
+                    target = "Lcom/mojang/blaze3d/buffers/Std140Builder;putFloat(F)Lcom/mojang/blaze3d/buffers/Std140Builder;",
                     ordinal = 6))
     private Std140Builder moreDarkness_ambientFloorFactor(Std140Builder builder, float brightnessFactor) {
         return builder.putFloat(brightnessFactor)

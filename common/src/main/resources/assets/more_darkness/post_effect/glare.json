@@ -1,0 +1,88 @@
+{
+    "targets": {
+        "p0": { "width": 640, "height": 360 },
+        "d1": { "width": 320, "height": 180 },
+        "d2": { "width": 160, "height": 90 },
+        "d3": { "width": 80, "height": 45 },
+        "u2": { "width": 160, "height": 90 },
+        "u1": { "width": 320, "height": 180 },
+        "u0": { "width": 640, "height": 360 },
+        "swap": {}
+    },
+    "passes": [
+        {
+            "vertex_shader": "minecraft:core/screenquad",
+            "fragment_shader": "more_darkness:post/glare_prefilter",
+            "inputs": [
+                { "sampler_name": "In", "target": "minecraft:main", "bilinear": true }
+            ],
+            "uniforms": {
+                "GlareConfig": [
+                    { "name": "Glare", "type": "vec4", "value": [ 0.0, 0.0, 0.0, 0.0 ] }
+                ]
+            },
+            "output": "p0"
+        },
+        {
+            "vertex_shader": "minecraft:core/screenquad",
+            "fragment_shader": "more_darkness:post/dual_down",
+            "inputs": [ { "sampler_name": "In", "target": "p0", "bilinear": true } ],
+            "output": "d1"
+        },
+        {
+            "vertex_shader": "minecraft:core/screenquad",
+            "fragment_shader": "more_darkness:post/dual_down",
+            "inputs": [ { "sampler_name": "In", "target": "d1", "bilinear": true } ],
+            "output": "d2"
+        },
+        {
+            "vertex_shader": "minecraft:core/screenquad",
+            "fragment_shader": "more_darkness:post/dual_down",
+            "inputs": [ { "sampler_name": "In", "target": "d2", "bilinear": true } ],
+            "output": "d3"
+        },
+        {
+            "vertex_shader": "minecraft:core/screenquad",
+            "fragment_shader": "more_darkness:post/dual_up",
+            "inputs": [ { "sampler_name": "In", "target": "d3", "bilinear": true } ],
+            "output": "u2"
+        },
+        {
+            "vertex_shader": "minecraft:core/screenquad",
+            "fragment_shader": "more_darkness:post/dual_up",
+            "inputs": [ { "sampler_name": "In", "target": "u2", "bilinear": true } ],
+            "output": "u1"
+        },
+        {
+            "vertex_shader": "minecraft:core/screenquad",
+            "fragment_shader": "more_darkness:post/dual_up",
+            "inputs": [ { "sampler_name": "In", "target": "u1", "bilinear": true } ],
+            "output": "u0"
+        },
+        {
+            "vertex_shader": "minecraft:core/screenquad",
+            "fragment_shader": "more_darkness:post/glare_composite",
+            "inputs": [
+                { "sampler_name": "Main", "target": "minecraft:main" },
+                { "sampler_name": "Bloom", "target": "u0", "bilinear": true }
+            ],
+            "uniforms": {
+                "GlareConfig": [
+                    { "name": "Glare", "type": "vec4", "value": [ 0.0, 0.0, 0.0, 0.0 ] }
+                ]
+            },
+            "output": "swap"
+        },
+        {
+            "vertex_shader": "minecraft:core/screenquad",
+            "fragment_shader": "minecraft:post/blit",
+            "inputs": [ { "sampler_name": "In", "target": "swap" } ],
+            "uniforms": {
+                "BlitConfig": [
+                    { "name": "ColorModulate", "type": "vec4", "value": [ 1.0, 1.0, 1.0, 1.0 ] }
+                ]
+            },
+            "output": "minecraft:main"
+        }
+    ]
+}
