@@ -12,6 +12,13 @@ repositories {
         name = 'TerraformersMC'
         url = 'https://maven.terraformersmc.com/'
     }
+    maven {
+        name = 'Modrinth'
+        url = 'https://api.modrinth.com/maven'
+        content {
+            includeGroup 'maven.modrinth'
+        }
+    }
 }
 
 dependencies {
@@ -27,6 +34,22 @@ dependencies {
     implementation("com.terraformersmc:modmenu:${modmenu_version}") {
         transitive = false
     }
+
+    // Test-environment mods, dev runtime only: rendering/graphics mods that
+    // touch systems adjacent to ours (Sodium is required by Voxy and
+    // replaces the fluid renderer entirely).
+    // Voxy and Atmospherics publish the same version number for several MC
+    // targets: their Modrinth version IDs pin the 26.1.2 files.
+    // Sodium pinned to 0.9.1 stable: Voxy 0.2.18 requires exactly 0.9.1.
+    // Both temporarily off to isolate the fluid-renderer bypass (Sodium
+    // meshes fluids itself, skipping the vanilla FluidRenderer hooks).
+    // runtimeOnly 'maven.modrinth:sodium:mc26.1.2-0.9.1-fabric'
+    // runtimeOnly 'maven.modrinth:voxy:Zt3LPI0b'
+    runtimeOnly 'maven.modrinth:polytone:26.1.2-6.2.2'
+    runtimeOnly 'maven.modrinth:lambdynamiclights:4.11.0+26.1.2'
+    runtimeOnly 'maven.modrinth:atmospherics:LeQKXuNM'
+    runtimeOnly 'maven.modrinth:big-water:1.2.0-fabric+mc26.1'
+    runtimeOnly 'maven.modrinth:glowtone:1.0.2-mc26.1'
 }
 
 loom {
