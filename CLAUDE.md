@@ -2,6 +2,10 @@
 
 Minecraft 26.1.2 mod (Fabric + NeoForge). Enhances darkness: moon phases affect night light, caves are pitch black.
 
+## Release
+
+Tag `v<version>+<mc-version>` on the branch to release. Every release ships a hand-written `changelogs/<version>.md` (concise, user-facing, written by Claude): the versioned pre-push hook (`git config core.hooksPath .githooks`, once per clone) and the CI both refuse a release tag without it.
+
 ## Build
 
 ```

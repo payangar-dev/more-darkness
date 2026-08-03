@@ -52,15 +52,16 @@ jobs:
       - name: Build
         run: ./gradlew build -Pversion=${{ steps.version.outputs.version }}
 
-      - name: Generate changelog
+      - name: Changelog
         run: |
-          CURRENT_TAG="v${{ steps.version.outputs.version }}"
-          PREV_TAG=$(git tag --sort=-v:refname | grep -v "^${CURRENT_TAG}$" | head -n 1)
-          if [ -z "$PREV_TAG" ]; then
-            git log --pretty=format:"- %s" HEAD > changelog.txt
-          else
-            git log --pretty=format:"- %s" "${PREV_TAG}..HEAD" > changelog.txt
+          BASE_VERSION="${{ steps.version.outputs.version }}"
+          BASE_VERSION="${BASE_VERSION%%+*}"
+          FILE="changelogs/${BASE_VERSION}.md"
+          if [ ! -f "$FILE" ]; then
+            echo "::error::Missing ${FILE} — every release ships a hand-written changelog."
+            exit 1
           fi
+          cp "$FILE" changelog.txt
 
       - name: Stage artifacts
         run: |
