@@ -1,6 +1,6 @@
 #version 330
 
-// FIXME: fake - perception spike step 3d (dark sight radius).
+// Dark sight radius.
 // Dark adaptation only reveals the player's immediate surroundings: beyond
 // the radius, pixels that only the adaptation floor lit up are crushed back
 // to black, while real lights (torches, moonlit ground) stay visible.

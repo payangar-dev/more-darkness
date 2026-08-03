@@ -27,7 +27,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * FIXME: fake - perception spike step 3d.
  * The dark sight radius needs per-pixel distance, so the pass runs inside
  * LevelRenderer's frame graph while the main depth buffer still holds the
  * level. 26.2 removed the late debug pass the 26.1 version hooked, so the
@@ -72,8 +71,9 @@ public class MixinLevelRendererDarkSight {
             @Local FrameGraphBuilder frame) {
         // The far veil follows the darkness of the scene, not the adaptation:
         // it must already be closed when entering a cave unadapted.
+        MoreDarknessConfig config = MoreDarknessConfig.getInstance();
         float crush = EyeState.darkSightCrushFloor();
-        if (!MoreDarknessConfig.getInstance().enableMod || crush <= 0.0015f) {
+        if (!config.enableMod || !config.eyeAdaptation || crush <= 0.0015f) {
             return;
         }
         PostChain chain = this.shaderManager.getPostChain(MORE_DARKNESS_DARK_SIGHT, LevelTargetBundle.MAIN_TARGETS);

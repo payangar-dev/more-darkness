@@ -1,6 +1,6 @@
 #version 330
 
-// FIXME: fake - perception spike step 2 (scotopic vision), tuned curve.
+// Scotopic vision.
 // Mesopic model: color fades gradually and only for truly dim pixels
 // (cones keep working surprisingly low), and the gray rod vision only
 // exists once the eye is dark-adapted (rod-cone break): an unadapted eye

@@ -11,7 +11,6 @@ import net.minecraft.client.renderer.PostChain;
 import net.minecraft.resources.Identifier;
 
 /**
- * FIXME: fake - perception spike step 3b.
  * Reads back the 1x1 persistent target of the metering post chain: the
  * average luminance of what is actually on screen, which is what the eye
  * adapts to. The copy is asynchronous (same pattern as vanilla Screenshot),

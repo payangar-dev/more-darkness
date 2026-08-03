@@ -21,7 +21,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * FIXME: fake - perception spike steps 2 and 3.
  * Runs the perception post chains right where vanilla runs its spectator
  * post effects (after doEntityOutline), on the same main-target-only bundle.
  * Both passes only read color, so the state of the main depth buffer does
@@ -68,7 +67,8 @@ public class MixinGameRendererScotopic {
             )
     )
     private void moreDarkness_scotopicPass(DeltaTracker deltaTracker, boolean advanceGameTime, CallbackInfo ci) {
-        if (!MoreDarknessConfig.getInstance().enableMod || this.minecraft.level == null) {
+        MoreDarknessConfig config = MoreDarknessConfig.getInstance();
+        if (!config.enableMod || !config.eyeAdaptation || this.minecraft.level == null) {
             return;
         }
 

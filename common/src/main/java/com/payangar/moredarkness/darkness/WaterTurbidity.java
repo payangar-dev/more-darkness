@@ -5,7 +5,8 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 
 /**
- * FIXME: fake - perception spike (per-biome water turbidity), key matching.
+ * Per-biome water turbidity, classified by biome key name so modded biomes
+ * with matching names grade naturally.
  * Swamps hide everything, warm tropical oceans stay clear, everything else
  * sits in between. Reads the biome off the client level directly: fine for
  * loaded chunks, also from meshing threads (plain chunk data reads).

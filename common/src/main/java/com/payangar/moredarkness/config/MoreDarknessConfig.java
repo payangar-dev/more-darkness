@@ -27,6 +27,10 @@ public class MoreDarknessConfig {
     public float minimumMoonBrightness = 0.05f;
     public float caveDarkness = 0.0f;
 
+    // --- Perception ---
+    public boolean eyeAdaptation = true;
+    public boolean darkerWater = true;
+
     // --- Compatibility ---
     public boolean disableWithShaders = true;
 
