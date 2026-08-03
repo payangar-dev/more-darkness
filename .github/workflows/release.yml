@@ -33,19 +33,16 @@ jobs:
       - name: Build
         run: ./gradlew build -Pversion=${{ steps.version.outputs.version }}
 
-      - name: Generate changelog
-        id: changelog
+      - name: Changelog
         run: |
-          # Get previous tag
-          PREV_TAG=$(git tag --sort=-v:refname | sed -n '2p')
-          if [ -z "$PREV_TAG" ]; then
-            # First release — use all commits
-            COMMITS=$(git log --pretty=format:"- %s" HEAD)
-          else
-            COMMITS=$(git log --pretty=format:"- %s" "${PREV_TAG}..HEAD")
+          BASE_VERSION="${{ steps.version.outputs.version }}"
+          BASE_VERSION="${BASE_VERSION%%+*}"
+          FILE="changelogs/${BASE_VERSION}.md"
+          if [ ! -f "$FILE" ]; then
+            echo "::error::Missing ${FILE} — every release ships a hand-written changelog."
+            exit 1
           fi
-          # Write to file (multi-line safe)
-          echo "$COMMITS" > changelog.txt
+          cp "$FILE" changelog.txt
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
