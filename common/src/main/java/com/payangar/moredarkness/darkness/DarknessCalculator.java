@@ -25,6 +25,9 @@ public final class DarknessCalculator {
     /** Lightmap value the two vanilla 4% grey mixes give a fully unlit cell. */
     private static final float VANILLA_AMBIENT_FLOOR = 0.06f;
 
+    /** Flat boost of the block light factor, widening the torch falloff. */
+    private static final float TORCH_FALLOFF_BOOST = 1.5f;
+
     private DarknessCalculator() {}
 
     /**
@@ -49,7 +52,6 @@ public final class DarknessCalculator {
 
     /**
      * BlockFactor uniform: strength of the block light contribution.
-     * FIXME: fake - perception spike step 1, hardcoded knobs.
      * Smoother torch falloff: flat boost of the block light contribution
      * (high levels already clamp at 1, so this mostly lifts the mid range),
      * then the dark-adaptation gain on top.
@@ -58,15 +60,18 @@ public final class DarknessCalculator {
         if (darkenedLevel() == null) {
             return vanillaBlockFactor;
         }
-        return vanillaBlockFactor * 1.5f * adaptationGain();
+        return vanillaBlockFactor * TORCH_FALLOFF_BOOST * adaptationGain();
     }
 
     /**
      * Dark adaptation amplifies whatever light exists (rods gain), it
      * cannot create light: pitch black cells stay pitch black, dim ones
-     * become readable once the eye is adapted.
+     * become readable once the eye is adapted. 1 when eye adaptation is off.
      */
     private static float adaptationGain() {
+        if (!MoreDarknessConfig.getInstance().eyeAdaptation) {
+            return 1.0f;
+        }
         return 1.0f + 0.9f * EyeState.rodEngagement();
     }
 
@@ -89,18 +94,22 @@ public final class DarknessCalculator {
      * roughly 0.06, which is what stops Overworld caves from going black on
      * 1.21.x. 1.0 is vanilla, 0 removes the floor.
      *
-     * <p>FIXME: fake - perception spike step 1. The floor is the configured
-     * cave ambient raised by dark adaptation (0 by default -> pitch black
-     * caves until the eye adapts). The adaptation floor is an absolute
-     * lightmap value on 26.1; here it is expressed as a fraction of the
-     * ~{@value #VANILLA_AMBIENT_FLOOR} the two grey mixes give an unlit cell.
+     * <p>The floor is the configured cave ambient raised by dark adaptation
+     * (0 by default -> pitch black caves until the eye adapts). The
+     * adaptation floor is an absolute lightmap value on 26.1; here it is
+     * expressed as a fraction of the ~{@value #VANILLA_AMBIENT_FLOOR} the
+     * two grey mixes give an unlit cell.
      */
     public static float ambientFloorFactor() {
         if (darkenedLevel() == null) {
             return 1.0f;
         }
-        float adaptationFactor = EyeState.darkSightFloor() / VANILLA_AMBIENT_FLOOR;
-        return Math.max(MoreDarknessConfig.getInstance().caveDarkness, adaptationFactor);
+        MoreDarknessConfig config = MoreDarknessConfig.getInstance();
+        float floor = config.caveDarkness;
+        if (config.eyeAdaptation) {
+            floor = Math.max(floor, EyeState.darkSightFloor() / VANILLA_AMBIENT_FLOOR);
+        }
+        return floor;
     }
 
     /** The level being rendered, or null when the mod leaves this frame alone. */

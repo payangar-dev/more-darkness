@@ -21,7 +21,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 /**
- * FIXME: fake - perception spike step 3d.
  * The dark sight radius needs per-pixel distance, and the main depth buffer
  * is only alive inside LevelRenderer's frame graph (GameRenderer clears it
  * before its own post-effect site). So the pass is appended to the frame
@@ -64,8 +63,9 @@ public class MixinLevelRendererDarkSight {
     private void moreDarkness_addDarkSightPass(FrameGraphBuilder frame) {
         // The far veil follows the darkness of the scene, not the adaptation:
         // it must already be closed when entering a cave unadapted.
+        MoreDarknessConfig config = MoreDarknessConfig.getInstance();
         float floor = EyeState.darkSightCrushFloor();
-        if (!MoreDarknessConfig.getInstance().enableMod || floor <= 0.0015f) {
+        if (!config.enableMod || !config.eyeAdaptation || floor <= 0.0015f) {
             return;
         }
         PostChain chain = this.minecraft.getShaderManager().getPostChain(MORE_DARKNESS_DARK_SIGHT, LevelTargetBundle.MAIN_TARGETS);

@@ -1,7 +1,6 @@
 package com.payangar.moredarkness.darkness;
 
 /**
- * FIXME: fake - perception spike (fluid top face scratch).
  * The fluid top face currently in flight on this meshing thread: the corner
  * light values computed when the face starts, and the vertices accumulated as
  * vanilla emits them, so the turbidity layers can be stacked once the fourth

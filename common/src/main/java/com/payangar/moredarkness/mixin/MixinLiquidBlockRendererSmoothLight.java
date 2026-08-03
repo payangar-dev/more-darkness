@@ -21,7 +21,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Slice;
 
 /**
- * FIXME: fake - perception spike (smooth fluid lighting + turbidity layers).
+ * Smooth fluid lighting and turbidity layers.
  * Vanilla gives the whole top face of a fluid one light value (all four
  * vertices share it), so light steps block by block across water. On 26.1
  * this wrapped the single addFace call emitting the top face; 1.21.11 has no
@@ -124,7 +124,9 @@ public class MixinLiquidBlockRendererSmoothLight {
     @Unique
     private static void moreDarkness_stackTurbidityLayers(
             VertexConsumer builder, BlockAndTintGetter level, BlockPos pos, FluidState fluidState, FluidTopFace face) {
-        float turbidity = fluidState.is(FluidTags.WATER) ? WaterTurbidity.level(pos) : 0.0f;
+        float turbidity = MoreDarknessConfig.getInstance().darkerWater && fluidState.is(FluidTags.WATER)
+                ? WaterTurbidity.level(pos)
+                : 0.0f;
         boolean backFace = fluidState.shouldRenderBackwardUpFace(level, pos.above());
 
         for (int layer = 1; layer <= 2; layer++) {
