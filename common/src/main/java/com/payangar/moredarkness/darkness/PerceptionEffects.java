@@ -5,6 +5,7 @@ import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.payangar.moredarkness.Constants;
+import com.payangar.moredarkness.mixin.GameRendererInvoker;
 import com.payangar.moredarkness.mixin.PostChainAccessor;
 import java.io.IOException;
 import net.minecraft.client.Minecraft;
@@ -108,6 +109,14 @@ public final class PerceptionEffects {
         }
         float far = minecraft.options.getEffectiveRenderDistance() * 16 * 4.0f;
         setUniform(darkSight, "DarkSight", DARK_SIGHT_RADIUS_BLOCKS, crush, NEAR_PLANE, far);
+        // The shader stretches view Z along each pixel's ray to get the true
+        // euclidean distance (spherical veil): it needs the projection shape.
+        RenderTarget main = minecraft.getMainRenderTarget();
+        double fovDegrees = ((GameRendererInvoker) minecraft.gameRenderer)
+                .moreDarkness_getFov(minecraft.gameRenderer.getMainCamera(), tickDelta, true);
+        float tanHalfFovY = (float) Math.tan(Math.toRadians(fovDegrees) / 2.0);
+        float tanHalfFovX = tanHalfFovY * ((float) main.width / main.height);
+        setUniform(darkSight, "DarkSightProj", tanHalfFovX, tanHalfFovY, 0.0f, 0.0f);
         prepareState();
         darkSight.process(tickDelta);
         // Restore what the hand rendering expects: main bound, depth test on
