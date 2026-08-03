@@ -13,7 +13,10 @@ in vec2 texCoord;
 
 out vec4 fragColor;
 
-const float K = 4.0;
+// Wider headroom than 26.x: this branch's CPU lightmap renders hotter
+// highlights and K = 4 saturated the 8-bit overflow buffer, flattening
+// the bloom and disconnecting it from the intensity knob.
+const float K = 8.0;
 
 void main() {
     vec3 color = texture(DiffuseSampler, texCoord).rgb;

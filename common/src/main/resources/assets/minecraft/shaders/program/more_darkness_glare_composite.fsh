@@ -14,7 +14,8 @@ in vec2 texCoord;
 
 out vec4 fragColor;
 
-const float K = 4.0;
+// Must match the prefilter headroom
+const float K = 8.0;
 
 vec3 screenSpaceDither(vec2 screenPos, float time) {
     vec3 dither = vec3(dot(vec2(171.0, 231.0), screenPos + time));
