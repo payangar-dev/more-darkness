@@ -16,7 +16,8 @@ layout(std140) uniform SamplerInfo {
 };
 
 layout(std140) uniform DarkSightConfig {
-    vec4 DarkSight; // x = radius blocks, y = adaptation floor, z = near plane, w = far plane
+    vec4 DarkSight;     // x = radius blocks, y = adaptation floor, z = near plane, w = far plane
+    vec4 DarkSightProj; // x = tan(fovX/2), y = tan(fovY/2)
 };
 
 out vec4 fragColor;
@@ -31,13 +32,20 @@ void main() {
     float far = DarkSight.w;
     float viewZ = 2.0 * near * far / (far + near - zNdc * (far - near));
 
+    // View Z is the distance to the camera PLANE: alone it makes the veil a
+    // flat wall in front of the player. Stretch it along the per-pixel view
+    // ray to get the true euclidean distance, so the veil is a sphere.
+    vec2 ray = (texCoord * 2.0 - 1.0) * DarkSightProj.xy;
+    float dist = viewZ * sqrt(1.0 + dot(ray, ray));
+
     // The sky writes no depth: leave it alone
     float isSky = step(0.999999, depth);
-    float beyond = smoothstep(DarkSight.x - 3.0, DarkSight.x, viewZ) * (1.0 - isSky);
+    float beyond = smoothstep(DarkSight.x * 0.7, DarkSight.x * 1.5, dist) * (1.0 - isSky);
 
     // Crush only what the adaptation floor could have lit (luma near the
-    // floor level), keep anything genuinely brighter
-    float keep = smoothstep(DarkSight.y * 0.6, DarkSight.y * 1.8, luma);
+    // floor level), keep anything genuinely brighter. The wide window keeps
+    // the lit-to-black boundary of distant torches a gradient, not a cliff.
+    float keep = smoothstep(DarkSight.y * 0.5, DarkSight.y * 3.0, luma);
 
     fragColor = vec4(color.rgb * mix(1.0, keep, beyond), 1.0);
 }

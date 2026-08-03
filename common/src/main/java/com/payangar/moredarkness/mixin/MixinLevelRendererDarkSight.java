@@ -6,6 +6,7 @@ import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.payangar.moredarkness.config.MoreDarknessConfig;
 import com.payangar.moredarkness.darkness.DynamicUniforms;
 import com.payangar.moredarkness.darkness.EyeState;
+import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.LevelTargetBundle;
@@ -73,8 +74,17 @@ public class MixinLevelRendererDarkSight {
             return;
         }
         float far = this.minecraft.options.getEffectiveRenderDistance() * 16 * 4.0f;
-        DynamicUniforms.update(chain, "DarkSightConfig", DARK_SIGHT_RADIUS_BLOCKS, floor, NEAR_PLANE, far);
         RenderTarget main = this.minecraft.getMainRenderTarget();
+        // The shader stretches view Z along each pixel's ray to get the true
+        // euclidean distance (spherical veil): it needs the projection shape.
+        Camera camera = this.minecraft.gameRenderer.getMainCamera();
+        float fov = ((GameRendererInvoker) this.minecraft.gameRenderer)
+                .moreDarkness_getFov(camera, camera.getPartialTickTime(), true);
+        float tanHalfFovY = (float) Math.tan(Math.toRadians(fov) / 2.0);
+        float tanHalfFovX = tanHalfFovY * ((float) main.width / main.height);
+        DynamicUniforms.update(chain, "DarkSightConfig",
+                DARK_SIGHT_RADIUS_BLOCKS, floor, NEAR_PLANE, far,
+                tanHalfFovX, tanHalfFovY, 0.0f, 0.0f);
         chain.addToFrame(frame, main.width, main.height, this.targets);
     }
 }

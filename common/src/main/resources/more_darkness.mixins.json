@@ -4,6 +4,7 @@
     "package": "com.payangar.moredarkness.mixin",
     "compatibilityLevel": "JAVA_21",
     "client": [
+        "GameRendererInvoker",
         "LevelRendererInvoker",
         "MixinGameRendererScotopic",
         "MixinLevelRendererDarkSight",
