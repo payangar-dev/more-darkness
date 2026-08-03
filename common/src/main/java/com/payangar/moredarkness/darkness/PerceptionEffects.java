@@ -11,6 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.PostChain;
 import net.minecraft.client.renderer.PostPass;
 import net.minecraft.resources.ResourceLocation;
+import org.joml.Matrix4f;
 
 /**
  * FIXME: fake - perception spike port (post passes, 1.21.1 backend).
@@ -33,7 +34,9 @@ import net.minecraft.resources.ResourceLocation;
  */
 public final class PerceptionEffects {
 
-    private static final float GLARE_BLOOM_INTENSITY = 0.2f;
+    /** Lower than the 26.x branches: the CPU lightmap rescale on 1.21.1
+     *  renders hotter torch highlights, feeding the prefilter more overflow. */
+    private static final float GLARE_BLOOM_INTENSITY = 0.08f;
     private static final float DARK_SIGHT_RADIUS_BLOCKS = 8.0f;
     private static final float NEAR_PLANE = 0.05f;
 
@@ -93,8 +96,10 @@ public final class PerceptionEffects {
      * depth buffer still holds the world.
      */
     public static void processDarkSight(Minecraft minecraft, float tickDelta) {
-        float floor = EyeState.darkSightFloor();
-        if (floor <= 0.0015f) {
+        // The far veil follows the darkness of the scene, not the adaptation:
+        // it must already be closed when entering a cave unadapted.
+        float crush = EyeState.darkSightCrushFloor();
+        if (crush <= 0.0015f) {
             return;
         }
         resizeIfNeeded(minecraft);
@@ -103,7 +108,7 @@ public final class PerceptionEffects {
             return;
         }
         float far = minecraft.options.getEffectiveRenderDistance() * 16 * 4.0f;
-        setUniform(darkSight, "DarkSight", DARK_SIGHT_RADIUS_BLOCKS, floor, NEAR_PLANE, far);
+        setUniform(darkSight, "DarkSight", DARK_SIGHT_RADIUS_BLOCKS, crush, NEAR_PLANE, far);
         prepareState();
         darkSight.process(tickDelta);
         // Restore what the hand rendering expects: main bound, depth test on
@@ -134,6 +139,21 @@ public final class PerceptionEffects {
     private static void setUniform(PostChain chain, String name, float x, float y, float z, float w) {
         for (PostPass pass : ((PostChainAccessor) chain).moreDarkness_getPasses()) {
             pass.getEffect().safeGetUniform(name).set(x, y, z, w);
+        }
+    }
+
+    /**
+     * The 1.21.1 PostChain stamps the SCREEN ortho matrix on every pass, but
+     * each pass draws a quad sized to its OUT target: any fixed-size target
+     * smaller than the screen only gets its lower-left corner covered (the
+     * 1x1 measure target none at all). Vanilla never uses sub-screen targets
+     * so the bug is latent there. Re-stamp each pass with an ortho matching
+     * its own out target; must run again after every chain resize.
+     */
+    private static void fixPassProjections(PostChain chain) {
+        for (PostPass pass : ((PostChainAccessor) chain).moreDarkness_getPasses()) {
+            pass.setOrthoMatrix(new Matrix4f().setOrtho(
+                    0.0F, pass.outTarget.width, 0.0F, pass.outTarget.height, 0.1F, 1000.0F));
         }
     }
 
@@ -182,6 +202,7 @@ public final class PerceptionEffects {
                             minecraft.getMainRenderTarget(),
                             location);
                     chain.resize(minecraft.getWindow().getWidth(), minecraft.getWindow().getHeight());
+                    fixPassProjections(chain);
                 } catch (IOException | JsonSyntaxException e) {
                     Constants.LOG.error("Failed to load post chain {}", location, e);
                     broken = true;
@@ -194,6 +215,7 @@ public final class PerceptionEffects {
         void resize(int width, int height) {
             if (chain != null) {
                 chain.resize(width, height);
+                fixPassProjections(chain);
             }
         }
     }
