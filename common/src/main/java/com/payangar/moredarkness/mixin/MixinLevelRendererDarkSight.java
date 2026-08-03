@@ -62,8 +62,10 @@ public class MixinLevelRendererDarkSight {
 
     @Unique
     private void moreDarkness_addDarkSightPass(FrameGraphBuilder frame) {
-        float floor = EyeState.darkSightFloor();
-        if (!MoreDarknessConfig.getInstance().enableMod || floor <= 0.0015f) {
+        // The far veil follows the darkness of the scene, not the adaptation:
+        // it must already be closed when entering a cave unadapted.
+        float crush = EyeState.darkSightCrushFloor();
+        if (!MoreDarknessConfig.getInstance().enableMod || crush <= 0.0015f) {
             return;
         }
         PostChain chain = this.minecraft.getShaderManager().getPostChain(MORE_DARKNESS_DARK_SIGHT, LevelTargetBundle.MAIN_TARGETS);
@@ -71,7 +73,7 @@ public class MixinLevelRendererDarkSight {
             return;
         }
         float far = this.minecraft.options.getEffectiveRenderDistance() * 16 * 4.0f;
-        DynamicUniforms.update(chain, "DarkSightConfig", DARK_SIGHT_RADIUS_BLOCKS, floor, NEAR_PLANE, far);
+        DynamicUniforms.update(chain, "DarkSightConfig", DARK_SIGHT_RADIUS_BLOCKS, crush, NEAR_PLANE, far);
         RenderTarget main = this.minecraft.getMainRenderTarget();
         chain.addToFrame(frame, main.width, main.height, this.targets);
     }
