@@ -24,6 +24,11 @@ public final class DynamicUniforms {
     private DynamicUniforms() {}
 
     public static void update(PostChain chain, String blockName, float x, float y, float z, float w) {
+        update(chain, blockName, new float[] { x, y, z, w });
+    }
+
+    /** One vec4 per group of four values, in declaration order of the block. */
+    public static void update(PostChain chain, String blockName, float... values) {
         for (PostPass pass : ((PostChainAccessor) chain).moreDarkness_getPasses()) {
             Map<String, GpuBuffer> uniforms = ((PostPassAccessor) pass).moreDarkness_getCustomUniforms();
             if (!uniforms.containsKey(blockName)) {
@@ -31,8 +36,10 @@ public final class DynamicUniforms {
             }
             GpuBuffer fresh;
             try (MemoryStack stack = MemoryStack.stackPush()) {
-                Std140Builder builder = Std140Builder.onStack(stack, 16);
-                builder.putVec4(x, y, z, w);
+                Std140Builder builder = Std140Builder.onStack(stack, values.length * 4);
+                for (int i = 0; i < values.length; i += 4) {
+                    builder.putVec4(values[i], values[i + 1], values[i + 2], values[i + 3]);
+                }
                 fresh = RenderSystem.getDevice().createBuffer(() -> "more_darkness " + blockName, 128, builder.get());
             }
             GpuBuffer previous = uniforms.put(blockName, fresh);

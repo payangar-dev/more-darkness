@@ -73,8 +73,14 @@ public class MixinLevelRendererDarkSight {
             return;
         }
         float far = this.minecraft.options.getEffectiveRenderDistance() * 16 * 4.0f;
-        DynamicUniforms.update(chain, "DarkSightConfig", DARK_SIGHT_RADIUS_BLOCKS, crush, NEAR_PLANE, far);
         RenderTarget main = this.minecraft.getMainRenderTarget();
+        // The shader stretches view Z along each pixel's ray to get the true
+        // euclidean distance (spherical veil): it needs the projection shape.
+        float tanHalfFovY = (float) Math.tan(Math.toRadians(this.minecraft.gameRenderer.getMainCamera().getFov()) / 2.0);
+        float tanHalfFovX = tanHalfFovY * ((float) main.width / main.height);
+        DynamicUniforms.update(chain, "DarkSightConfig",
+                DARK_SIGHT_RADIUS_BLOCKS, crush, NEAR_PLANE, far,
+                tanHalfFovX, tanHalfFovY, 0.0f, 0.0f);
         chain.addToFrame(frame, main.width, main.height, this.targets);
     }
 }
