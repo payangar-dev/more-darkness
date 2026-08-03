@@ -70,8 +70,10 @@ public class MixinLevelRendererDarkSight {
             CameraRenderState cameraState, Matrix4fc modelViewMatrix, GpuBufferSlice terrainFog,
             Vector4f fogColor, boolean shouldRenderSky, CallbackInfo ci,
             @Local FrameGraphBuilder frame) {
-        float floor = EyeState.darkSightFloor();
-        if (!MoreDarknessConfig.getInstance().enableMod || floor <= 0.0015f) {
+        // The far veil follows the darkness of the scene, not the adaptation:
+        // it must already be closed when entering a cave unadapted.
+        float crush = EyeState.darkSightCrushFloor();
+        if (!MoreDarknessConfig.getInstance().enableMod || crush <= 0.0015f) {
             return;
         }
         PostChain chain = this.shaderManager.getPostChain(MORE_DARKNESS_DARK_SIGHT, LevelTargetBundle.MAIN_TARGETS);
@@ -79,7 +81,7 @@ public class MixinLevelRendererDarkSight {
             return;
         }
         // depthFar is the exact far plane of the level projection on 26.2
-        DynamicUniforms.update(chain, "DarkSightConfig", DARK_SIGHT_RADIUS_BLOCKS, floor, NEAR_PLANE, cameraState.depthFar);
+        DynamicUniforms.update(chain, "DarkSightConfig", DARK_SIGHT_RADIUS_BLOCKS, crush, NEAR_PLANE, cameraState.depthFar);
         RenderTarget main = this.gameRenderer.mainRenderTarget();
         chain.addToFrame(frame, main.width, main.height, this.targets);
     }
