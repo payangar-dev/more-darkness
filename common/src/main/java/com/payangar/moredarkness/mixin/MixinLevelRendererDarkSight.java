@@ -62,7 +62,9 @@ public class MixinLevelRendererDarkSight {
 
     @Unique
     private void moreDarkness_addDarkSightPass(FrameGraphBuilder frame) {
-        float floor = EyeState.darkSightFloor();
+        // The far veil follows the darkness of the scene, not the adaptation:
+        // it must already be closed when entering a cave unadapted.
+        float floor = EyeState.darkSightCrushFloor();
         if (!MoreDarknessConfig.getInstance().enableMod || floor <= 0.0015f) {
             return;
         }

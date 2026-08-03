@@ -49,6 +49,10 @@ public final class EyeState {
     public static void frameUpdate(float dtSeconds) {
         float tau = screenEv < adaptationEv ? DARK_ADAPTATION_SECONDS : LIGHT_ADAPTATION_SECONDS;
         adaptationEv += (screenEv - adaptationEv) * (1.0f - (float) Math.exp(-dtSeconds / tau));
+        // The eye cannot adapt deeper than "fully dark-adapted": without this
+        // clamp the far-veil-darkened screen drags the state toward the
+        // metering floor and the retinal gain pins at its cap (bloom blowout).
+        adaptationEv = Math.max(adaptationEv, DARK_FULL_EV);
     }
 
     /**
@@ -58,12 +62,34 @@ public final class EyeState {
      * not gray (rod-cone break).
      */
     public static float rodEngagement() {
-        return Mth.clamp((DARK_START_EV - adaptationEv) / (DARK_START_EV - DARK_FULL_EV), 0.0f, 1.0f);
+        float progress = Mth.clamp((DARK_START_EV - adaptationEv) / (DARK_START_EV - DARK_FULL_EV), 0.0f, 1.0f);
+        // Rod-cone break: squared progress keeps the first seconds in the
+        // dark nearly blind (plateau), rod vision then catches up.
+        return progress * progress;
     }
 
     /** Extra lightmap floor earned by being dark-adapted right now. */
     public static float darkSightFloor() {
         return MAX_DARK_SIGHT * rodEngagement();
+    }
+
+    /**
+     * How dark the scene currently LOOKS (screen side, near-instant via the
+     * metering), same ramp as rodEngagement but not waiting for adaptation.
+     */
+    public static float darknessEngagement() {
+        return Mth.clamp((DARK_START_EV - screenEv) / (DARK_START_EV - DARK_FULL_EV), 0.0f, 1.0f);
+    }
+
+    /**
+     * Threshold the dark-sight distance crush works against. Driven by the
+     * darkness itself, not by adaptation: the far veil closes as soon as the
+     * scene is dark (entering a cave unadapted must not grant far vision),
+     * while adaptation only opens up the near radius. The rod term keeps the
+     * crush from collapsing when a dark-adapted eye glances at a lit exit.
+     */
+    public static float darkSightCrushFloor() {
+        return MAX_DARK_SIGHT * Math.max(darknessEngagement(), rodEngagement());
     }
 
     /**
