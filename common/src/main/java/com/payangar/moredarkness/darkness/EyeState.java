@@ -3,17 +3,19 @@ package com.payangar.moredarkness.darkness;
 import net.minecraft.util.Mth;
 
 /**
- * FIXME: fake - throwaway spike (perception system, steps 1 and 3c).
  * Eye adaptation state kept in log2 luminance (EV), engine auto-exposure
  * style: photopic-to-photopic changes (snow vs sky) are fractions of a stop
  * and stay under the deadband, while cave-to-daylight spans several stops.
  * Driven every frame by the average luminance of what is on screen.
+ * All constants are gameplay-tuned in game, not physiological.
  */
 public final class EyeState {
 
-    /** Seconds to adapt to darkness / back to light (gameplay-tuned). */
+    /** Seconds to adapt to darkness / back to light. */
     private static final float DARK_ADAPTATION_SECONDS = 12.0f;
     private static final float LIGHT_ADAPTATION_SECONDS = 1.2f;
+    /** Blind onset delay before dark adaptation even starts to build. */
+    private static final float DARK_ONSET_DELAY_SECONDS = 3.0f;
     /** Screen luminance floor applied before log2 (~-8 EV). */
     private static final float MIN_LUMINANCE = 0.004f;
     /** Mismatch tolerated without any dazzle, in stops. */
@@ -37,6 +39,8 @@ public final class EyeState {
     private static float adaptationEv = -1.0f;
     /** EV of the latest measured average screen luminance. */
     private static float screenEv = -1.0f;
+    /** Seconds spent waiting for dark adaptation to engage. */
+    private static float darkOnsetSeconds;
 
     private EyeState() {}
 
@@ -47,7 +51,18 @@ public final class EyeState {
 
     /** Advances the adaptation with the real elapsed time of the frame. */
     public static void frameUpdate(float dtSeconds) {
-        float tau = screenEv < adaptationEv ? DARK_ADAPTATION_SECONDS : LIGHT_ADAPTATION_SECONDS;
+        boolean towardDark = screenEv < adaptationEv;
+        if (towardDark) {
+            // Cones give up before the rods report in: darkening only
+            // starts once the eye has been in the dark for a moment.
+            darkOnsetSeconds += dtSeconds;
+            if (darkOnsetSeconds < DARK_ONSET_DELAY_SECONDS) {
+                return;
+            }
+        } else {
+            darkOnsetSeconds = 0.0f;
+        }
+        float tau = towardDark ? DARK_ADAPTATION_SECONDS : LIGHT_ADAPTATION_SECONDS;
         adaptationEv += (screenEv - adaptationEv) * (1.0f - (float) Math.exp(-dtSeconds / tau));
         // The eye cannot adapt deeper than "fully dark-adapted": without this
         // clamp the far-veil-darkened screen drags the state toward the
