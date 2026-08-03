@@ -12,7 +12,8 @@
             ],
             "uniforms": {
                 "DarkSightConfig": [
-                    { "name": "DarkSight", "type": "vec4", "value": [ 8.0, 0.0, 0.05, 1024.0 ] }
+                    { "name": "DarkSight", "type": "vec4", "value": [ 8.0, 0.0, 0.05, 1024.0 ] },
+                    { "name": "DarkSightProj", "type": "vec4", "value": [ 1.0, 1.0, 0.0, 0.0 ] }
                 ]
             },
             "output": "swap"

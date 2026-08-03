@@ -80,9 +80,15 @@ public class MixinLevelRendererDarkSight {
         if (chain == null) {
             return;
         }
-        // depthFar is the exact far plane of the level projection on 26.2
-        DynamicUniforms.update(chain, "DarkSightConfig", DARK_SIGHT_RADIUS_BLOCKS, crush, NEAR_PLANE, cameraState.depthFar);
         RenderTarget main = this.gameRenderer.mainRenderTarget();
+        // The shader stretches view Z along each pixel's ray to get the true
+        // euclidean distance (spherical veil): it needs the projection shape.
+        float tanHalfFovY = (float) Math.tan(Math.toRadians(this.gameRenderer.mainCamera().getFov()) / 2.0);
+        float tanHalfFovX = tanHalfFovY * ((float) main.width / main.height);
+        // depthFar is the exact far plane of the level projection on 26.2
+        DynamicUniforms.update(chain, "DarkSightConfig",
+                DARK_SIGHT_RADIUS_BLOCKS, crush, NEAR_PLANE, cameraState.depthFar,
+                tanHalfFovX, tanHalfFovY, 0.0f, 0.0f);
         chain.addToFrame(frame, main.width, main.height, this.targets);
     }
 }
