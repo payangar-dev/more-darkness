@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.Slice;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * FIXME: fake - perception spike port (smooth fluid lighting + turbidity).
+ * Smooth fluid lighting and turbidity layers.
  * Vanilla gives the whole top face of a fluid one light value (all four
  * vertices share it), so light steps block by block across water. This wraps
  * the top-face vertex emission (the slice between the top-face and

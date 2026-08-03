@@ -19,11 +19,11 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * FIXME: fake - perception spike port (underwater turbidity), hardcoded values.
- * Vanilla water lets adapted eyes see 96 blocks (fog end x waterVision);
- * real water is far murkier. Keeps vanilla's underwater eye accustoming
- * (waterVision) but caps visibility at swimming-hole levels, graded by the
- * biome turbidity and blended over time across biome borders.
+ * Underwater turbidity. Vanilla water lets adapted eyes see 96 blocks
+ * (fog end x waterVision); real water is far murkier. Keeps vanilla's
+ * underwater eye accustoming (waterVision) but caps visibility at
+ * swimming-hole levels, graded by the biome turbidity and blended over
+ * time across biome borders.
  */
 @Mixin(FogRenderer.class)
 public class MixinFogRendererWater {
@@ -40,7 +40,8 @@ public class MixinFogRendererWater {
 
     @Inject(method = "setupFog", at = @At("TAIL"))
     private static void moreDarkness_murkyWater(Camera camera, FogRenderer.FogMode fogMode, float renderDistance, boolean isFoggy, float partialTick, CallbackInfo ci) {
-        if (!MoreDarknessConfig.getInstance().enableMod) {
+        MoreDarknessConfig config = MoreDarknessConfig.getInstance();
+        if (!config.enableMod || !config.darkerWater) {
             return;
         }
         if (camera.getFluidInCamera() != FogType.WATER) {

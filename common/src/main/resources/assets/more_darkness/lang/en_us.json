@@ -25,6 +25,12 @@
     "more_darkness.config.option.cave_darkness": "Cave Ambient Light",
     "more_darkness.config.option.cave_darkness.desc": "Ambient light level in caves with no light source. 0 = pitch black (realistic), higher values add faint visibility.",
 
+    "more_darkness.config.option.eye_adaptation": "Eye Adaptation",
+    "more_darkness.config.option.eye_adaptation.desc": "Simulated human eye: dark and light adaptation, colorless night vision, glare when leaving darkness, short-range adapted sight.",
+
+    "more_darkness.config.option.darker_water": "Darker Water",
+    "more_darkness.config.option.darker_water.desc": "Murky water: reduced underwater visibility and harder-to-see-through surfaces, graded per biome.",
+
     "more_darkness.config.option.disable_with_shaders": "Disable With Shaders",
     "more_darkness.config.option.disable_with_shaders.desc": "Automatically disable this mod when an Iris/Optifine shader pack is active, as shader packs handle their own lighting."
 }

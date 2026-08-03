@@ -1,6 +1,7 @@
 package com.payangar.moredarkness.darkness;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.payangar.moredarkness.config.MoreDarknessConfig;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.FluidTags;
@@ -9,7 +10,7 @@ import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.material.FluidState;
 
 /**
- * FIXME: fake - perception spike port (smooth fluid lighting + turbidity).
+ * Smooth fluid lighting and turbidity layers.
  * Scratch state and math behind MixinLiquidBlockRendererSmoothLight: chunk
  * meshing runs tesselate concurrently on worker threads, so the state that
  * correlates the four corners of one top face lives in a ThreadLocal. Once
@@ -87,7 +88,7 @@ public final class FluidSmoothLight {
      * so biome borders blend over a few blocks instead of snapping.
      */
     private static void emitLayers(VertexConsumer consumer, BlockAndTintGetter level, BlockPos pos, FluidState fluidState, Face face) {
-        if (!fluidState.is(FluidTags.WATER)) {
+        if (!MoreDarknessConfig.getInstance().darkerWater || !fluidState.is(FluidTags.WATER)) {
             return;
         }
         float turbidity = WaterTurbidity.level(pos);

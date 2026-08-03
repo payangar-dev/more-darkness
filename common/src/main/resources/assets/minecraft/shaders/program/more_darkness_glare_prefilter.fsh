@@ -1,6 +1,6 @@
 #version 150
 
-// FIXME: fake - perception spike port (glare prefilter).
+// Glare prefilter.
 // Spencer 1995: glare comes from the energy the display cannot show. Boost
 // the LDR frame by the adaptation mismatch, keep only what clips above 1.0.
 // Stored pre-divided by K to fit the overflow into an RGBA8 target.

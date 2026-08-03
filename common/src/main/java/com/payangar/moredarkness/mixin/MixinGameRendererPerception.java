@@ -12,7 +12,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * FIXME: fake - perception spike port, steps 2 and 3.
  * Runs the perception post chains right where vanilla runs its spectator
  * post effects (after doEntityOutline). Scotopic runs first so the glare
  * veil itself is not desaturated. The depth-based dark sight pass cannot
@@ -34,7 +33,8 @@ public class MixinGameRendererPerception {
             )
     )
     private void moreDarkness_perceptionPasses(DeltaTracker deltaTracker, boolean renderLevel, CallbackInfo ci) {
-        if (!MoreDarknessConfig.getInstance().enableMod || this.minecraft.level == null) {
+        MoreDarknessConfig config = MoreDarknessConfig.getInstance();
+        if (!config.enableMod || !config.eyeAdaptation || this.minecraft.level == null) {
             return;
         }
         PerceptionEffects.processFrame(this.minecraft, deltaTracker.getGameTimeDeltaTicks());
@@ -49,7 +49,8 @@ public class MixinGameRendererPerception {
             )
     )
     private void moreDarkness_darkSightPass(DeltaTracker deltaTracker, CallbackInfo ci) {
-        if (!MoreDarknessConfig.getInstance().enableMod || this.minecraft.level == null) {
+        MoreDarknessConfig config = MoreDarknessConfig.getInstance();
+        if (!config.enableMod || !config.eyeAdaptation || this.minecraft.level == null) {
             return;
         }
         PerceptionEffects.processDarkSight(this.minecraft, deltaTracker.getGameTimeDeltaTicks());

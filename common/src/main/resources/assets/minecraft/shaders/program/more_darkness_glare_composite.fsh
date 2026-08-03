@@ -1,6 +1,6 @@
 #version 150
 
-// FIXME: fake - perception spike port (glare composite).
+// Glare composite.
 // Rebuilds the frame with the overexposure boost applied, adds the blurred
 // veil back on top, and dithers to hide 8-bit banding in the halo
 // (Vlachos, Valve, GDC 2015).

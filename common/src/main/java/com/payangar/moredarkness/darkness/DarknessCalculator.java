@@ -20,6 +20,9 @@ public final class DarknessCalculator {
     private static final float[][] LUMINANCE = new float[16][16];
     private static boolean active = false;
 
+    /** Flat boost of the block light contribution, widening the torch falloff. */
+    private static final float TORCH_FALLOFF_BOOST = 1.5f;
+
     private DarknessCalculator() {}
 
     public static boolean isActive() {
@@ -58,14 +61,17 @@ public final class DarknessCalculator {
         float ambient = world.getSkyDarken(1.0f);
         DimensionType dim = world.dimensionType();
 
-        // FIXME: fake - perception spike port, hardcoded knobs below.
-        // Dark adaptation amplifies whatever light exists (rods gain), it
-        // cannot create light: pitch black cells stay pitch black, dim ones
-        // become readable once the eye is adapted.
-        float adaptationGain = 1.0f + 0.9f * EyeState.rodEngagement();
-        // Ambient floor: configured cave ambient, raised by dark adaptation
-        // (0 by default -> pitch black caves until the eye adapts)
-        float caveAmbient = Math.max(config.caveDarkness * 0.05f, EyeState.darkSightFloor());
+        float adaptationGain = 1.0f;
+        float caveAmbient = config.caveDarkness * 0.05f;
+        if (config.eyeAdaptation) {
+            // Dark adaptation amplifies whatever light exists (rods gain), it
+            // cannot create light: pitch black cells stay pitch black, dim
+            // ones become readable once the eye is adapted.
+            adaptationGain = 1.0f + 0.9f * EyeState.rodEngagement();
+            // Ambient floor: configured cave ambient, raised by dark
+            // adaptation (0 by default -> pitch black until the eye adapts)
+            caveAmbient = Math.max(caveAmbient, EyeState.darkSightFloor());
+        }
 
         for (int skyIndex = 0; skyIndex < 16; ++skyIndex) {
             // Sky light curve: 1 - (1 - s/15)^4
@@ -110,7 +116,7 @@ public final class DarknessCalculator {
                 // Smoother torch falloff: flat boost of the block light
                 // contribution (high levels already clamp at 1, so this
                 // mostly lifts the mid range), amplified by dark adaptation.
-                float blockScale = 1.5f * adaptationGain;
+                float blockScale = TORCH_FALLOFF_BOOST * adaptationGain;
                 blockBase *= blockScale;
                 blockGreen *= blockScale;
                 blockBlue *= blockScale;

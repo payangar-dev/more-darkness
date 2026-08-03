@@ -38,6 +38,8 @@ public final class ConfigScreenBuilder {
                 .option(boolOption("moon_phase_effect", defaults.moonPhaseEffect, () -> config.moonPhaseEffect, v -> config.moonPhaseEffect = v))
                 .option(floatOption("minimum_moon_brightness", 0.0f, 0.5f, 0.01f, defaults.minimumMoonBrightness, () -> config.minimumMoonBrightness, v -> config.minimumMoonBrightness = v))
                 .option(floatOption("cave_darkness", 0.0f, 1.0f, 0.01f, defaults.caveDarkness, () -> config.caveDarkness, v -> config.caveDarkness = v))
+                .option(boolOption("eye_adaptation", defaults.eyeAdaptation, () -> config.eyeAdaptation, v -> config.eyeAdaptation = v))
+                .option(boolOption("darker_water", defaults.darkerWater, () -> config.darkerWater, v -> config.darkerWater = v))
                 .build();
     }
 

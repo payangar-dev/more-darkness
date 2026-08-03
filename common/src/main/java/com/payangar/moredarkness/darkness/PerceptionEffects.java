@@ -14,7 +14,6 @@ import net.minecraft.resources.ResourceLocation;
 import org.joml.Matrix4f;
 
 /**
- * FIXME: fake - perception spike port (post passes, 1.21.1 backend).
  * Owns the hand-instantiated PostChains of the perception system. On this
  * version GameRenderer only manages a single vanilla postEffect, so the
  * chains are created lazily on the render thread, resized by polling the
