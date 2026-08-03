@@ -25,6 +25,12 @@
     "more_darkness.config.option.cave_darkness": "Lumière ambiante des grottes",
     "more_darkness.config.option.cave_darkness.desc": "Lumière ambiante dans les grottes sans source de lumière. 0 = noir complet (réaliste), des valeurs plus élevées ajoutent une faible visibilité.",
 
+    "more_darkness.config.option.eye_adaptation": "Adaptation de l'œil",
+    "more_darkness.config.option.eye_adaptation.desc": "Œil humain simulé : adaptation à l'obscurité et à la lumière, vision nocturne sans couleurs, éblouissement en sortant du noir, vision adaptée à courte portée.",
+
+    "more_darkness.config.option.darker_water": "Eau plus sombre",
+    "more_darkness.config.option.darker_water.desc": "Eau trouble : visibilité réduite sous l'eau et surfaces moins transparentes, selon le biome.",
+
     "more_darkness.config.option.disable_with_shaders": "Désactiver avec les shaders",
     "more_darkness.config.option.disable_with_shaders.desc": "Désactive automatiquement ce mod quand un pack de shaders Iris/Optifine est actif, car les shaders gèrent leur propre éclairage."
 }

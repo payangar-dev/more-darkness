@@ -11,7 +11,6 @@ import net.minecraft.client.renderer.PostPass;
 import org.lwjgl.system.MemoryStack;
 
 /**
- * FIXME: fake - perception spike.
  * PostPass bakes its JSON uniforms into immutable GPU buffers at chain
  * compile time, so dynamic values need the buffers swapped by hand: before
  * each run of a chain, every pass carrying the named block gets a freshly

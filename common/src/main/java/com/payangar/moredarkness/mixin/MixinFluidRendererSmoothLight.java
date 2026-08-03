@@ -21,7 +21,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 
 /**
- * FIXME: fake - perception spike (smooth fluid lighting + turbidity layers).
+ * Smooth fluid lighting and turbidity layers.
  * Vanilla gives the whole top face of a fluid one light value (all four
  * vertices share it), so light steps block by block across water. This wraps
  * the top-face emission to light each corner with the average of the four
@@ -91,7 +91,9 @@ public class MixinFluidRendererSmoothLight {
         // texture's translucency, so murky water hides its bottom. The
         // fractional part fades the last layer through its vertex alpha,
         // so biome borders blend over a few blocks instead of snapping.
-        float turbidity = fluidState.is(FluidTags.WATER) ? WaterTurbidity.level(pos) : 0.0f;
+        float turbidity = MoreDarknessConfig.getInstance().darkerWater && fluidState.is(FluidTags.WATER)
+                ? WaterTurbidity.level(pos)
+                : 0.0f;
 
         for (int layer = yieldSurface ? 1 : 0; layer <= 2; layer++) {
             float layerAlpha = layer == 0 ? 1.0f : Mth.clamp(turbidity - (layer - 1), 0.0f, 1.0f);

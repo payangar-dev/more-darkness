@@ -22,6 +22,9 @@ public final class DarknessCalculator {
     /** Night value of the sky_light_factor track in the vanilla day timeline. */
     private static final float VANILLA_NIGHT_SKY_FACTOR = 0.24f;
 
+    /** Flat boost of the block light factor, widening the torch falloff. */
+    private static final float TORCH_FALLOFF_BOOST = 1.5f;
+
     private DarknessCalculator() {}
 
     /**
@@ -47,22 +50,23 @@ public final class DarknessCalculator {
             renderState.skyFactor = 0.0f;
         }
 
-        // FIXME: fake - perception spike step 1, hardcoded knobs below.
         // Smoother torch falloff: flat boost of the block light contribution
         // (high levels already clamp at 1, so this mostly lifts the mid range).
-        renderState.blockFactor *= 1.5f;
+        renderState.blockFactor *= TORCH_FALLOFF_BOOST;
 
-        // Dark adaptation amplifies whatever light exists (rods gain), it
-        // cannot create light: pitch black cells stay pitch black, dim ones
-        // become readable once the eye is adapted.
-        float adaptationGain = 1.0f + 0.9f * EyeState.rodEngagement();
-        renderState.blockFactor *= adaptationGain;
-        renderState.skyFactor *= adaptationGain;
-
-        // Ambient floor: configured cave ambient, raised by dark adaptation
-        // (0 by default -> pitch black caves until the eye adapts)
         float caveAmbient = config.caveDarkness * 0.05f;
-        float ambient = Math.max(caveAmbient, EyeState.darkSightFloor());
+        float ambient = caveAmbient;
+        if (config.eyeAdaptation) {
+            // Dark adaptation amplifies whatever light exists (rods gain), it
+            // cannot create light: pitch black cells stay pitch black, dim
+            // ones become readable once the eye is adapted.
+            float adaptationGain = 1.0f + 0.9f * EyeState.rodEngagement();
+            renderState.blockFactor *= adaptationGain;
+            renderState.skyFactor *= adaptationGain;
+            // Ambient floor: configured cave ambient, raised by dark
+            // adaptation (0 by default -> pitch black until the eye adapts)
+            ambient = Math.max(caveAmbient, EyeState.darkSightFloor());
+        }
         renderState.ambientColor = new Vector3f(ambient, ambient, ambient);
     }
 
