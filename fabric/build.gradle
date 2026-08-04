@@ -12,6 +12,13 @@ repositories {
         name = 'TerraformersMC'
         url = 'https://maven.terraformersmc.com/'
     }
+    maven {
+        name = 'Modrinth'
+        url = 'https://api.modrinth.com/maven'
+        content {
+            includeGroup 'maven.modrinth'
+        }
+    }
 }
 
 dependencies {
@@ -30,6 +37,11 @@ dependencies {
     modImplementation("com.terraformersmc:modmenu:11.0.3") {
         transitive = false
     }
+
+    // Test-environment mod, dev runtime only: Distant Horizons mirrors the
+    // lightmap pixels at updateLightTexture RETURN (issue #1 flicker repro).
+    // Pinned by Modrinth version ID (3.2.0-b for 1.21.1 fabric).
+    modRuntimeOnly 'maven.modrinth:distanthorizons:ZpKb4kZp'
 }
 
 loom {

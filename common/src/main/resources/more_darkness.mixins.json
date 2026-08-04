@@ -7,7 +7,6 @@
     "client": [
         "GameRendererInvoker",
         "MixinFogRendererWater",
-        "MixinGameRenderer",
         "MixinGameRendererPerception",
         "MixinLightTexture",
         "MixinLiquidBlockRendererSmoothLight",
