@@ -62,7 +62,7 @@ public final class FluidSmoothLight {
      * backface vertices arrive after the fourth call and are ignored here.
      */
     public static void recordVertex(VertexConsumer consumer, BlockAndTintGetter level, BlockPos pos, FluidState fluidState,
-            float x, float y, float z, float red, float green, float blue, float u, float v, int light) {
+            float x, float y, float z, float red, float green, float blue, float alpha, float u, float v, int light) {
         Face face = FACE.get();
         if (face.count < 4) {
             face.x[face.count] = x;
@@ -74,6 +74,7 @@ public final class FluidSmoothLight {
             face.red = red;
             face.green = green;
             face.blue = blue;
+            face.alpha = alpha;
         }
         face.count++;
         if (face.count == 4) {
@@ -112,9 +113,10 @@ public final class FluidSmoothLight {
         }
     }
 
-    private static void vertex(VertexConsumer consumer, Face face, int corner, float dy, float alpha) {
+    private static void vertex(VertexConsumer consumer, Face face, int corner, float dy, float layerAlpha) {
+        // The face alpha carries NeoForge's fluid transparency (1 on Fabric)
         consumer.addVertex(face.x[corner], face.y[corner] - dy, face.z[corner])
-                .setColor(face.red, face.green, face.blue, alpha)
+                .setColor(face.red, face.green, face.blue, face.alpha * layerAlpha)
                 .setUv(face.u[corner], face.v[corner])
                 .setLight(face.light[corner])
                 .setNormal(0.0F, 1.0F, 0.0F);
@@ -150,5 +152,6 @@ public final class FluidSmoothLight {
         float red;
         float green;
         float blue;
+        float alpha = 1.0f;
     }
 }

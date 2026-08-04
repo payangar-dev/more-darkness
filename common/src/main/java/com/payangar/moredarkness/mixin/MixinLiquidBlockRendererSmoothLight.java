@@ -26,6 +26,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * turbidity. WrapOperation instead of Redirect so other mods wrapping the
  * same calls compose instead of crashing. Sodium replaces this renderer
  * entirely: the mixin never runs there.
+ *
+ * Two wraps because the loaders disagree on the vertex overload: NeoForge
+ * patches an alpha parameter into the tesselate calls (fluid transparency
+ * extensions), Fabric keeps the vanilla shape. Each wrap uses require = 0:
+ * exactly one matches per loader, and if a future patch changes the shape
+ * again the effect silently degrades instead of crashing the game
+ * (issue #3 was this crash on NeoForge).
  */
 @Mixin(LiquidBlockRenderer.class)
 public class MixinLiquidBlockRendererSmoothLight {
@@ -52,7 +59,8 @@ public class MixinLiquidBlockRendererSmoothLight {
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/renderer/block/LiquidBlockRenderer;vertex(Lcom/mojang/blaze3d/vertex/VertexConsumer;FFFFFFFFI)V"
-            )
+            ),
+            require = 0
     )
     private void moreDarkness_smoothTopFace(
             LiquidBlockRenderer renderer, VertexConsumer consumer,
@@ -68,6 +76,43 @@ public class MixinLiquidBlockRendererSmoothLight {
         }
         int cornerLight = FluidSmoothLight.cornerLight(level, pos, x, z);
         original.call(renderer, consumer, x, y, z, red, green, blue, u, v, cornerLight);
-        FluidSmoothLight.recordVertex(consumer, level, pos, fluidState, x, y, z, red, green, blue, u, v, cornerLight);
+        FluidSmoothLight.recordVertex(consumer, level, pos, fluidState, x, y, z, red, green, blue, 1.0f, u, v, cornerLight);
+    }
+
+    @WrapOperation(
+            method = "tesselate",
+            slice = @Slice(
+                    from = @At(
+                            value = "INVOKE",
+                            target = "Lnet/minecraft/client/renderer/block/LiquidBlockRenderer;getLightColor(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/core/BlockPos;)I",
+                            ordinal = 0
+                    ),
+                    to = @At(
+                            value = "INVOKE",
+                            target = "Lnet/minecraft/client/renderer/block/LiquidBlockRenderer;getLightColor(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/core/BlockPos;)I",
+                            ordinal = 1
+                    )
+            ),
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/block/LiquidBlockRenderer;vertex(Lcom/mojang/blaze3d/vertex/VertexConsumer;FFFFFFFFFI)V"
+            ),
+            require = 0
+    )
+    private void moreDarkness_smoothTopFaceNeoForge(
+            LiquidBlockRenderer renderer, VertexConsumer consumer,
+            float x, float y, float z, float red, float green, float blue, float alpha,
+            float u, float v, int packedLight,
+            Operation<Void> original,
+            @Local(argsOnly = true) BlockAndTintGetter level,
+            @Local(argsOnly = true) BlockPos pos,
+            @Local(argsOnly = true) FluidState fluidState) {
+        if (!MoreDarknessConfig.getInstance().enableMod) {
+            original.call(renderer, consumer, x, y, z, red, green, blue, alpha, u, v, packedLight);
+            return;
+        }
+        int cornerLight = FluidSmoothLight.cornerLight(level, pos, x, z);
+        original.call(renderer, consumer, x, y, z, red, green, blue, alpha, u, v, cornerLight);
+        FluidSmoothLight.recordVertex(consumer, level, pos, fluidState, x, y, z, red, green, blue, alpha, u, v, cornerLight);
     }
 }
