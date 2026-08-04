@@ -35,6 +35,12 @@ import org.spongepowered.asm.mixin.injection.Slice;
  * When such a mod is present it keeps the visible surface (light untouched)
  * and we only stack the turbidity layers beneath it.
  * Sodium replaces this renderer entirely: the mixin never runs there.
+ *
+ * Two vertex wraps because the loaders disagree on the overload: NeoForge
+ * patches an alpha parameter into the tesselate calls (fluid transparency
+ * extensions), Fabric keeps the vanilla shape. Each wrap uses require = 0:
+ * exactly one matches per loader, and if a future patch changes the shape
+ * again the effect silently degrades instead of crashing the game.
  */
 @Mixin(LiquidBlockRenderer.class)
 public class MixinLiquidBlockRendererSmoothLight {
@@ -79,7 +85,8 @@ public class MixinLiquidBlockRendererSmoothLight {
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/renderer/block/LiquidBlockRenderer;vertex(Lcom/mojang/blaze3d/vertex/VertexConsumer;FFFFFFFFI)V"
-            )
+            ),
+            require = 0
     )
     private void moreDarkness_smoothTopFaceVertex(
             LiquidBlockRenderer instance, VertexConsumer builder,
@@ -92,24 +99,70 @@ public class MixinLiquidBlockRendererSmoothLight {
             original.call(instance, builder, x, y, z, red, green, blue, u, v, packedLight);
             return;
         }
+        int cornerLight = moreDarkness_beginVertex(pos, x, z);
+        original.call(instance, builder, x, y, z, red, green, blue, u, v,
+                moreDarkness_shouldYield() ? packedLight : cornerLight);
+        moreDarkness_finishVertex(builder, level, pos, fluidState, x, y, z, red, green, blue, 1.0f, u, v, cornerLight);
+    }
 
+    @WrapOperation(
+            method = "tesselate",
+            slice = @Slice(
+                    from = @At(
+                            value = "INVOKE",
+                            target = "Lnet/minecraft/client/renderer/block/LiquidBlockRenderer;getLightColor(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/core/BlockPos;)I",
+                            ordinal = 0
+                    ),
+                    to = @At(
+                            value = "INVOKE",
+                            target = "Lnet/minecraft/client/renderer/block/LiquidBlockRenderer;getLightColor(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/core/BlockPos;)I",
+                            ordinal = 1
+                    )
+            ),
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/block/LiquidBlockRenderer;vertex(Lcom/mojang/blaze3d/vertex/VertexConsumer;FFFFFFFFFI)V"
+            ),
+            require = 0
+    )
+    private void moreDarkness_smoothTopFaceVertexNeoForge(
+            LiquidBlockRenderer instance, VertexConsumer builder,
+            float x, float y, float z, float red, float green, float blue, float alpha, float u, float v, int packedLight,
+            Operation<Void> original,
+            @Local(argsOnly = true) BlockAndTintGetter level,
+            @Local(argsOnly = true) BlockPos pos,
+            @Local(argsOnly = true) FluidState fluidState) {
+        if (!MoreDarknessConfig.getInstance().enableMod) {
+            original.call(instance, builder, x, y, z, red, green, blue, alpha, u, v, packedLight);
+            return;
+        }
+        int cornerLight = moreDarkness_beginVertex(pos, x, z);
+        original.call(instance, builder, x, y, z, red, green, blue, alpha, u, v,
+                moreDarkness_shouldYield() ? packedLight : cornerLight);
+        moreDarkness_finishVertex(builder, level, pos, fluidState, x, y, z, red, green, blue, alpha, u, v, cornerLight);
+    }
+
+    /** Corner detection shared by both overload wraps. */
+    @Unique
+    private static int moreDarkness_beginVertex(BlockPos pos, float x, float z) {
         // Which corner of the block this vertex sits on: top-face x/z are
         // exactly the section-local block coordinates, plus 0 or 1
         int dx = Mth.clamp(Math.round(x) - (pos.getX() & 15), 0, 1);
         int dz = Mth.clamp(Math.round(z) - (pos.getZ() & 15), 0, 1);
+        return FluidTopFace.CURRENT.get().cornerLight(dx, dz);
+    }
+
+    /** Accumulation and layer stacking shared by both overload wraps. */
+    @Unique
+    private static void moreDarkness_finishVertex(
+            VertexConsumer builder, BlockAndTintGetter level, BlockPos pos, FluidState fluidState,
+            float x, float y, float z, float red, float green, float blue, float alpha, float u, float v, int cornerLight) {
         FluidTopFace face = FluidTopFace.CURRENT.get();
-        int cornerLight = face.cornerLight(dx, dz);
-
-        // A water-rendering mod owns the visible surface (waves, its own
-        // lighting); we only stack our turbidity layers underneath it.
-        boolean yieldSurface = moreDarkness_shouldYield();
-        original.call(instance, builder, x, y, z, red, green, blue, u, v, yieldSurface ? packedLight : cornerLight);
-
         if (face.isComplete()) {
             // Back-face vertices of a face whose layers are already stacked
             return;
         }
-        face.add(x, y, z, u, v, cornerLight, red, green, blue);
+        face.add(x, y, z, u, v, cornerLight, red, green, blue, alpha);
         if (face.isComplete()) {
             moreDarkness_stackTurbidityLayers(builder, level, pos, fluidState, face);
         }
@@ -190,9 +243,10 @@ public class MixinLiquidBlockRendererSmoothLight {
     }
 
     @Unique
-    private static void moreDarkness_vertex(VertexConsumer builder, FluidTopFace face, int i, float dy, float alpha) {
+    private static void moreDarkness_vertex(VertexConsumer builder, FluidTopFace face, int i, float dy, float layerAlpha) {
+        // The face alpha carries NeoForge's fluid transparency (1 on Fabric)
         builder.addVertex(face.x[i], face.y[i] - dy, face.z[i])
-                .setColor(face.red, face.green, face.blue, alpha)
+                .setColor(face.red, face.green, face.blue, face.alpha * layerAlpha)
                 .setUv(face.u[i], face.v[i])
                 .setLight(face.light[i])
                 .setNormal(0.0F, 1.0F, 0.0F);

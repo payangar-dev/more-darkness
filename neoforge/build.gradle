@@ -37,6 +37,14 @@ repositories {
         name = 'Isxander'
         url = 'https://maven.isxander.dev/releases'
     }
+    // Kotlin for Forge, transitive runtime dep of YACL neoforge
+    maven {
+        name = 'KotlinForForge'
+        url = 'https://thedarkcolour.github.io/KotlinForForge/'
+        content {
+            includeGroup 'thedarkcolour'
+        }
+    }
 }
 
 dependencies {

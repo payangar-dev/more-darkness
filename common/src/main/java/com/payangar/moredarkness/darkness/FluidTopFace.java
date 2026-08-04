@@ -26,6 +26,8 @@ public final class FluidTopFace {
     public float red;
     public float green;
     public float blue;
+    /** NeoForge's fluid transparency, 1 on the vanilla-shaped (Fabric) path. */
+    public float alpha = 1.0f;
     private int count;
 
     private FluidTopFace() {}
@@ -48,7 +50,7 @@ public final class FluidTopFace {
         return this.count == VERTICES;
     }
 
-    public void add(float x, float y, float z, float u, float v, int light, float red, float green, float blue) {
+    public void add(float x, float y, float z, float u, float v, int light, float red, float green, float blue, float alpha) {
         this.x[this.count] = x;
         this.y[this.count] = y;
         this.z[this.count] = z;
@@ -58,6 +60,7 @@ public final class FluidTopFace {
         this.red = red;
         this.green = green;
         this.blue = blue;
+        this.alpha = alpha;
         this.count++;
     }
 }
