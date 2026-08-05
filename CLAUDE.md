@@ -1,10 +1,12 @@
 # More Darkness
 
-Minecraft 26.2 mod (Fabric + NeoForge). Enhances darkness: moon phases affect night light, caves are pitch black.
+Minecraft 26.2 mod (Fabric + NeoForge). Enhances darkness: moon phases affect night light, caves are pitch black, and since 2.0.0 the mod simulates the human eye (adaptation, scotopic vision, glare) and murky water.
 
 ## Release
 
-Tag `v<version>+<mc-version>` on the branch to release. Every release ships a hand-written `changelogs/<version>.md` (concise, user-facing, written by Claude): the versioned pre-push hook (`git config core.hooksPath .githooks`, once per clone) and the CI both refuse a release tag without it.
+Tag `v<version>+<mc-version>` on the branch to release. Every release ships a hand-written `changelogs/<version>.md` (concise, user-facing, written by Claude): the versioned pre-push hook (`git config core.hooksPath .githooks`, once per clone) and the CI both refuse a release tag without it. Push release tags one per `git push` (GitHub triggers nothing beyond 3 tags in one push).
+
+Before any release, playtest `:fabric:runClient` AND `:neoforge:runClient`: NeoForge patches vanilla rendering classes (the fluid renderer notably), so a mixin can crash there while Fabric is fine (the 2.0.0 NeoForge launch crash shipped because only Fabric was ever launched). Check the NeoForge-patched sources in the NeoFormRuntime cache (`sourcesWithNeoForge_*` / `patch_*` artifacts) when targeting vanilla rendering internals.
 
 ## Build
 
@@ -28,9 +30,15 @@ ConfigScreenBuilder is duplicated in each loader module (same code, different YA
 
 ## Key classes
 
-- `DarknessCalculator` — Mutates `LightmapRenderState` (the CPU-side inputs of the GPU lightmap shader `core/lightmap.fsh`): scales `skyFactor` with a moon-phase curve at night, replaces `ambientColor` with the configured cave ambient. Moon phase read via `EnvironmentAttributes.MOON_PHASE` from the camera's attribute probe. Gamma is left untouched: the shader's `notGamma(0) == 0`, so fully dark cells stay black at any gamma setting.
+- `DarknessCalculator` — Mutates `LightmapRenderState` (the CPU-side inputs of the GPU lightmap shader `core/lightmap.fsh`): scales `skyFactor` with a moon-phase curve at night, widens the torch falloff, applies the eye-adaptation gain and floor, replaces `ambientColor`. Moon phase read via `EnvironmentAttributes.MOON_PHASE` from the camera's attribute probe. Gamma is left untouched: the shader's `notGamma(0) == 0`, so fully dark cells stay black at any gamma setting.
 - `MixinLightmapRenderStateExtractor` — Single `@At("TAIL")` inject on `LightmapRenderStateExtractor.extract`; the early returns (not dirty, no level/player) skip it. Same hook as True Darkness by Tia and Darkness Engine on 26.x.
-- `MoreDarknessConfig` — Plain POJO, GSON serialized to `config/more_darkness.json`.
+- `MoreDarknessConfig` — Plain POJO, GSON serialized to `config/more_darkness.json`. `eyeAdaptation` gates the whole perception system (keeps the torch falloff), `darkerWater` gates turbidity (keeps smooth fluid lighting). Tuned values are hardcoded by design: no sliders.
+
+### Perception system (2.0.0)
+
+- `EyeState` — Adaptation state in log2 EV: 3s blind onset, 12s dark / 1.2s light tau, squared rod-cone curve, clamped at fully-adapted. Driven by the average luminance of the rendered frame (`ScreenMetering` reads back a 1x1 target from the `metering` post chain). The far veil (`darkSightCrushFloor`) follows measured darkness, not adaptation.
+- Post chains (`assets/more_darkness/post_effect/`): `scotopic` (mesopic desaturation gated by rod engagement), `glare` (Spencer-style dazzle, dual-filter bloom pyramid), `dark_sight` (spherical radius crush, needs depth: attached inside LevelRenderer's frame graph via `MixinLevelRendererDarkSight`, the only spot where world depth is alive), `metering`. Per-frame uniforms go through `DynamicUniforms` (swaps the baked `PostPass.customUniforms` buffers).
+- Water: `MixinFluidRendererSmoothLight` (per-corner light + turbidity layers via `@WrapOperation`, yields the surface to Big Water, inert under Sodium), `MixinWaterFogEnvironment` (biome-graded underwater fog), `WaterTurbidity` (biome key matching, spatial + temporal blending).
 
 ## Lightmap history (why the code looks like this)
 
@@ -39,6 +47,10 @@ ConfigScreenBuilder is duplicated in each loader module (same code, different YA
 - 26.1+: `LightTexture` removed, split into `LightmapRenderState` (public mutable fields) + `LightmapRenderStateExtractor` (CPU extract) + `Lightmap` (GPU pass, std140 UBO). Sky/ambient/block light colors are data-driven via `EnvironmentAttributes` and timeline datapacks; moon phase no longer affects vanilla lightmap.
 
 ## Compatibility
+
+### NeoForge patches (learned from the 2.0.0 crash)
+
+NeoForge patches an alpha parameter into the fluid renderer's vertex calls on 1.21.x (their fluid transparency extensions); the 1.21.x branches carry one `@WrapOperation` per overload with `require = 0` so exactly one matches per loader and future shape changes degrade silently instead of crashing. The 26.x `FluidRenderer` path is unpatched (verified). `:neoforge:runClient` needs the Kotlin for Forge maven (YACL transitive).
 
 ### Polytone (lightmap mods)
 
